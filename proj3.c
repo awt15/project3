@@ -25,3 +25,28 @@ typedef struct{
 	char boot_code[436];
 	unsigned short boot_sector_signature;
 }__attribute((packed)) FAT32BootBlock;
+
+typedef struct{
+	unsigned int FSI_LeadSig;
+	unsigned char FSI_Reserved1[480];
+	unsigned int FSI_StrucSig;
+	unsigned int FSI_Free_Count;
+	unsigned int FSI_Nxt_Free;
+	unsigned char FSI_Reserved2[12];
+	unsigned int FSI_TrailSig;
+}__attribute((packed)) FSI;
+
+typedef struct{
+	unsigned char DIR_Name[11];
+	unsigned char DIR_Attr;
+	unsigned char DIR_NTRes;
+	unsigned char DIR_CrtTimeTenth;
+	unsigned short DIR_CrtTime;
+	unsigned short DIR_CrtDate;
+	unsigned short DIR_LstAccDate;
+	unsigned short DIR_FstClusHI;
+	unsigned short DIR_WrtTime;
+	unsigned short DIR_WrtDate;
+	unsigned short DIR_FstClusLO;
+	unsigned int DIR_FileSize;
+}__attribute((packed)) DIR;

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 typedef struct{
 	unsigned char jmp[3];
 	char oem[8];
@@ -50,3 +52,40 @@ typedef struct{
 	unsigned short DIR_FstClusLO;
 	unsigned int DIR_FileSize;
 }__attribute((packed)) DIR;
+
+//FUNCTIONS
+int info(void);
+int exit(void);
+
+//GLOBAL VARIABLES
+FILE *file;
+struct FAT32BootBlock BPB;
+struct FSI FSI;
+struct DIR DIR;
+
+int main(int argc, char* argv[]){
+	return 0;
+}
+
+int info(void){
+	//	long offset = BPB32.BPB_FSInfo*BPB32.BPB_BytsPerSec;
+	fseek(file, offset, SEEK_SET);
+	fread(&FSI,sizeof(struct FSI), 1, file);
+
+	//PRINT STATEMENTS?
+	/*
+	printf(" Bytes per sector: %d\n", BPB32.BPB_BytsPerSec);
+	printf(" Sectors per cluster: %d\n", BPB32.BPB_SecPerClus);
+	printf(" Total sectors: %d\n", BPB32.BPB_TotSec32);
+	printf(" Number of FATs: %d\n", BPB32.BPB_NumFATs);
+	printf(" Sectors per FAT: %d\n", BPB32.BPB_FATSz32);
+	printf(" Number of free sectors: %d\n", FSI.FSI_Free_Count);
+	*/
+	return 0;
+}
+
+int exit(void){
+	//clear any space up
+	exit();
+	return 0;
+}

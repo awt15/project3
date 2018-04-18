@@ -236,16 +236,6 @@ int main(int argc, char* argv[])
 	}
 }
 
-//Can maybe just run in main for loop?
-/*
-int exit(void)
-{
-//clear any space up
-exit();
-return 0;
-}
-*/
-
 int info()
 {
 	long offset;
@@ -267,7 +257,14 @@ int info()
 
 int ls(char *name)
 {
-
+	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
+	//iterate through while i*FAT32....CreatedByYou < sector_size
+		//When that happens lookup FAT[current_cluster_number]
+		//if(FAT[current_cluster_number!=0x0FFFFFF8 || 0x0FFFFFFF || 0x00000000])
+			//current_cluster_number = FAT[current_cluster_number]
+			//reset loop
+		//else
+			//break
 }
 
 int cd(char *name)

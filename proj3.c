@@ -1,3 +1,7 @@
+//Anthony Tieu
+//Mustafa Syed
+//Vita Tran
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>

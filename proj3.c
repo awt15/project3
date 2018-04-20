@@ -28,20 +28,33 @@ struct BPB_32
 	unsigned int	BPB_HiddSec;
 	unsigned int	BPB_TotSec32;
 
+	/*
 	unsigned char	BS_DrvNum;
 	unsigned char	BS_Reserved1;
 	unsigned char	BS_BootSig;
 	unsigned int	BS_VolID;
 	unsigned char	BS_VolLab[11];
 	unsigned char	BS_FilSysType[8];
-
+	*/
 	unsigned int	BPB_FATSz32;
 	unsigned short	BPB_ExtFlags;
 	unsigned short	BPB_FSVer;
 	unsigned int	BPB_RootClus;
-	unsigned short	BPB_FSI_info;
-	unsigned short	BPB_BkBootSec;
-	unsigned char	BPB_Reserved[12];	
+	unsigned char	BS_VolLab[11];
+	unsigned char	BS_FilSysType[8];
+	unsigned char   boot_code[436];
+	unsigned short boot_sector_signature;
+
+	//unsigned short	BPB_FSI_info;
+	//unsigned short	BPB_BkBootSec;
+	//unsigned char	BPB_Reserved[12];	
+	//unsigned char	BS_DrvNum;
+	//unsigned char	BS_Reserved1;
+
+	//unsigned char	BS_BootSig;
+	//unsigned int	BS_VolID;
+	//unsigned char	BS_VolLab[11];
+	//unsigned char	BS_FilSysType[8];
 } __attribute__((packed));
 
 struct FSI
@@ -55,7 +68,7 @@ struct FSI
 	unsigned int FSI_TrailSig;
 }__attribute((packed));
 
-struct DIR
+struct DIR 
 {
 	unsigned char DIR_Name[11];
 	unsigned char DIR_Attr;
@@ -123,17 +136,17 @@ int main(int argc, char* argv[])
 	writeFileNum = 0;
 	readFileNum = 0;
 	openedFileNum = 0;
-	workingDir = (char*)malloc(200 * sizeof(char));
-	parentDir = (char*)malloc(200 * sizeof(char));
+	workingDir = (char*)malloc(200*sizeof(char));
+	parentDir = (char*)malloc(200*sizeof(char));
 
-	while (i < 100)
+	while(i < 100)
 	{
 		openedFile[i] = 0;
 		openedReadFile[i] = 0;
 		openedWriteFile[i] = 0;
 		++i;
 	}
-
+	
 	if (argc == 2)
 	{
 		if (file = fopen(argv[1], "rb+"))
@@ -144,11 +157,11 @@ int main(int argc, char* argv[])
 			currCluster = bpb_32.BPB_RootClus;
 
 			workingDir[0] = '/';
-			workingDir[1] = '\0';
+			workingDir[1] = '\0';		
 			parentDir[0] = '\0';
 			parentCluster = -1;
-
-			for (;;)
+			
+			for(;;)
 			{
 				printf("%s:%s>", fatImgName, workingDir);
 				scanf("%s", operation);
@@ -184,17 +197,17 @@ int main(int argc, char* argv[])
 					getchar();
 					create(name);
 				}
-				else if (strcmp(operation, "mkdir") == 0) {
+				else if (strcmp(operation, "mkdir") == 0){
 					scanf("%s", name);
 					getchar();
 					mkdir(name);
 				}
-				else if (strcmp(operation, "rm") == 0) {
+				else if (strcmp(operation, "rm") == 0){
 					scanf("%s", name);
 					getchar();
 					rm(name);
 				}
-				else if (strcmp(operation, "rmdir") == 0) {
+				else if (strcmp(operation, "rmdir") == 0){
 					scanf("%s", name);
 					getchar();
 					rmdir(name);
@@ -212,63 +225,62 @@ int main(int argc, char* argv[])
 					getchar();
 					close(name);
 				}
-				else if (strcmp(operation, "read") == 0)
+				else if (strcmp(operation, "read")==0)
 				{
 					readfile();
 				}
-				else if (strcmp(operation, "write") == 0)
+				else if (strcmp(operation, "write")==0)
 				{
 					writefile();
 				}
 				else
-					printf("Incorrect arguments. Enter exit, info, ls, cd, size, create, mkdir, rm, rmdir, open, close, read, write.\n");
+					printf("Incorrect arguments. Enter exit, info, ls, cd, size, create, mkdir, rm, rmdir, open, close, read, write.\n");			
 			}
 			return 0;
 		}
-		else {
+		else{
 			printf("Could not find FAT_32 image.\n");
 			return -1;
 		}
 	}
-	else {
+	else{
 		printf("Incorrect number of arguments.\n");
 		return -1;
 	}
 }
+
+//Can maybe just run in main for loop?
+/*
+int exit(void)
+{
+	//clear any space up
+	exit();
+	return 0;
+}
+*/
 
 int info()
 {
 	long offset;
 	struct FSI BPB_FSI_info;
 
-	offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;
-	fseek(file, 0x00000000, SEEK_SET);
+	//offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;
+	fseek(file, 0x00, SEEK_SET);
 	fread(&BPB_FSI_info, sizeof(struct FSI), 1, file);
 
-	printf("Number of free Sectors: %d\n", BPB_FSI_info.FSI_Free_Count);
-	printf("Sectors per Cluster: %d\n", bpb_32.BPB_SecPerClus);
-	printf("Total Sectors: %d\n", bpb_32.BPB_TotSec32);
+	//printf("Number of free Sectors: %d\n", BPB_FSI_info.FSI_Free_Count);
+	//printf("Sectors per Cluster: %d\n", bpb_32.BPB_SecPerClus);
+	//printf("Total Sectors: %d\n", bpb_32.BPB_TotSec32);
 	printf("Bytes per Sector: %d\n", bpb_32.BPB_BytsPerSec);
-	printf("Sectors per FAT: %d\n", bpb_32.BPB_FATSz32);
+	//printf("Sectors per FAT: %d\n", bpb_32.BPB_FATSz32);
 	printf("Number of FATs: %d\n", bpb_32.BPB_NumFATs);
-
+	printf("Root Cluster: %d\n", bpb_32.BPB_RootClus);
 	return 0;
 }
 
 int ls(char *name)
 {
-	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
-	int i = 0;
-	//iterate through while i*FAT32....CreatedByYou < sector_size
-	for(i; (i * FAT32DirectoryStructureCreatedByYou) < sector_size; i++)
-	{
-		//When that happens lookup FAT[current_cluster_number]
-		//if(FAT[current_cluster_number!=0x0FFFFFF8 || 0x0FFFFFFF || 0x00000000])
-			//current_cluster_number = FAT[current_cluster_number]
-			//reset loop
-		//else
-			//break
-	}
+
 }
 
 int cd(char *name)
@@ -281,22 +293,22 @@ int size()
 
 }
 
-int create(char *name)
+int create (char *name)
 {
 
 }
 
-int mkdir(char *name)
+int mkdir (char *name)
 {
 
 }
 
-int rm(char *name)
+int rm (char *name)
 {
 
 }
 
-int rmdir(char *name)
+int rmdir (char *name)
 {
 
 }

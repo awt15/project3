@@ -12,36 +12,36 @@
 
 struct BPB_32
 {
-	// unsigned chars
 	unsigned char	BS_jmpBoot[3];
 	unsigned char	BS_OEMName[8];
-	unsigned char	BPB_NumFATs;
-	unsigned char	BPB_SecPerClus;
-	unsigned char	BPB_Media;
-	unsigned char	BPB_Reserved[12];
-	unsigned char	BS_DrvNum;
-	unsigned char	BS_Reserved1;
-	unsigned char	BS_BootSig;
-	unsigned char	BS_VolLab[11];
-	unsigned char	BS_FilSysType[8];
-	// unsigned shorts
 	unsigned short	BPB_BytsPerSec;
+	unsigned char	BPB_SecPerClus;
 	unsigned short	BPB_RsvdSecCnt;
+
+	unsigned char	BPB_NumFATs;
 	unsigned short	BPB_RootEntCnt;
 	unsigned short	BPB_TotSec16;
+	unsigned char	BPB_Media;
 	unsigned short	BPB_FATSz16;
 	unsigned short	BPB_SecPerTrk;
 	unsigned short	BPB_NumHeads;
-	unsigned short	BPB_ExtFlags;
-	unsigned short	BPB_FSVer;
-	unsigned short	BPB_FSI_info;
-	unsigned short	BPB_BkBootSec;
-	// unsigned ints
 	unsigned int	BPB_HiddSec;
 	unsigned int	BPB_TotSec32;
-	unsigned int	BPB_FATSz32;
+
+	unsigned char	BS_DrvNum;
+	unsigned char	BS_Reserved1;
+	unsigned char	BS_BootSig;
 	unsigned int	BS_VolID;
+	unsigned char	BS_VolLab[11];
+	unsigned char	BS_FilSysType[8];
+
+	unsigned int	BPB_FATSz32;
+	unsigned short	BPB_ExtFlags;
+	unsigned short	BPB_FSVer;
 	unsigned int	BPB_RootClus;
+	unsigned short	BPB_FSI_info;
+	unsigned short	BPB_BkBootSec;
+	unsigned char	BPB_Reserved[12];	
 } __attribute__((packed));
 
 struct FSI
@@ -242,7 +242,7 @@ int info()
 	struct FSI BPB_FSI_info;
 
 	offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;
-	fseek(file, offset, SEEK_SET);
+	fseek(file, 0x00000000, SEEK_SET);
 	fread(&BPB_FSI_info, sizeof(struct FSI), 1, file);
 
 	printf("Number of free Sectors: %d\n", BPB_FSI_info.FSI_Free_Count);

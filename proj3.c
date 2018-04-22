@@ -275,10 +275,6 @@ int main(int argc, char* argv[])
 
 int info()
 {
-<<<<<<< HEAD
-=======
-	//long offset;
->>>>>>> e92265218e1282e033150312c4213cd8b02abfdc
 	struct FSI BPB_FSI_info;
 
 	//offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;

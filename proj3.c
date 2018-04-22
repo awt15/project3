@@ -92,6 +92,7 @@ struct DIR
 //GLOBAL VARIABLES
 extern struct FSI BPB_FSI_info;
 extern struct BPB_32 bpb_32;
+extern struct DIR directory;
 extern long openedFile[100];
 extern int openedFileNum;
 extern FILE *file;
@@ -120,6 +121,7 @@ unsigned int FirstSectorofCluster;
 
 //FUNCTIONS
 int info();
+int ls(int cluster_number);
 int ls(char *name);
 int cd(char *name);
 int size();
@@ -178,6 +180,7 @@ int main(int argc, char* argv[])
 			{
 				printf("%s:%s>", fatImgName, workingDir);
 				scanf("%s", operation);
+				
 				FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
 				FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
 
@@ -192,6 +195,7 @@ int main(int argc, char* argv[])
 				}
 				else if (strcmp(operation, "ls") == 0)
 				{
+					//FIGURE A WAY OUT TO DIFFERENTIATE BETWEEN EMPTY/NON-EMPTY
 					scanf("%s", name);
 					getchar();
 					ls(name);
@@ -264,16 +268,6 @@ int main(int argc, char* argv[])
 	}
 }
 
-//Can maybe just run in main for loop?
-/*
-int exit(void)
-{
-	//clear any space up
-	exit();
-	return 0;
-}
-*/
-
 int info()
 {
 	//long offset;
@@ -293,7 +287,23 @@ int info()
 	printf("First Data Sector: %x\n", FirstDataSector);
 	return 0;
 }
-
+//EMPTY LS
+int ls(int cluster_number)
+{
+	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
+	//int i = 0;
+	//iterate through while i*FAT32....CreatedByYou < sector_size
+	//for(i; (i * FAT32DirectoryStructureCreatedByYou) < sector_size; i++)
+	//{
+		//When that happens lookup FAT[current_cluster_number]
+		//if(FAT[current_cluster_number!=0x0FFFFFF8 || 0x0FFFFFFF || 0x00000000])
+			//current_cluster_number = FAT[current_cluster_number]
+			//reset loop
+		//else
+			//break
+	//}
+}
+//LS DIRECTORY
 int ls(char *name)
 {
 	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)

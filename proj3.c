@@ -269,6 +269,10 @@ int main(int argc, char* argv[])
 
 int info()
 {
+<<<<<<< HEAD
+=======
+	//long offset;
+>>>>>>> e92265218e1282e033150312c4213cd8b02abfdc
 	struct FSI BPB_FSI_info;
 
 	//offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;
@@ -335,7 +339,108 @@ int ls_name(char *name)
 
 int cd(char *name)
 {
+	int i = 0;
+	int j = 0;
+	char fileName[12];
+	struct DIR DIR_entry;
+ 
+	while (name[i] != '\0')
+	{
+		if (name[i] >= 'a' && name[i] <= 'z')
+		{
+			name[i] -= OFFSET_CONST;
+		}
+		fileName[i] = name[i];
+		++i;
+	}
 
+	while (i < 11)
+	{
+		fileName[i] = ' ';
+		++i;
+	}
+
+	fileName[i] = '\0';
+	
+	if (strcmp(name, ".") == 0)
+	{
+		//root?		
+	}
+	else if (strcmp(name, "/") == 0)
+	{
+		workingDir[0] = '/';
+		workingDir[1] = '\0';
+		currCluster = bpb_32.BPB_RootClus;
+	}
+	else if (strcmp(name, "..") == 0)
+	{
+		if (strcmp(workingDir, "/") == 0)
+		{
+			printf("Error! It's in the root directory.\n");
+			return -1;
+		}
+		else
+		{	
+			while (workingDir[i] != '\0')
+			{
+				++i;
+			}
+			while ((i = i -1) && workingDir[i] != '/')
+			{
+				--i;
+			}
+			
+			if (i == 0)
+			{
+				workingDir[i + 1] = '\0';
+			}
+			else
+			{
+				workingDir[i] = '\0';
+			}
+			currCluster = return_cluster_path(workingDir);
+		}
+	}
+	else
+	{
+		DIR_entry = find_file(currCluster, fileName);
+
+		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+		{
+			printf("Error: No directory found!\n");
+		}
+		else 
+		{
+			if (DIR_entry.DIR_Attr == 0x10)
+			{
+				currCluster = return_cluster_dir(currCluster, fileName);
+
+				while (workingDir[i] != '\0')
+				{
+					++i;
+				}
+
+				if (workingDir[i - 1] != '/')
+				{
+					workingDir[i++] = '/';
+				}
+
+				while (name[j] != '\0')
+				{
+					workingDir[i] = name[j];
+					++i;
+					++j;
+				}
+
+				workingDir[i] = '\0';
+			}
+			else
+			{
+				printf("Error: That is not a directory!\n");
+			}
+		}
+	}
+	return 0;
 }
 
 int size()
@@ -381,4 +486,147 @@ void readfile()
 void writefile()
 {
 
+}
+
+struct DIR find_file(unsigned int cluster, char *name)
+{
+	int i;
+	long offset;
+	char fileName[12];
+	struct DIR DIR_entry;
+
+	for(;;)
+	{
+		offset = sector_offset(FirstSectorofCluster);
+		fseek(file, offset, SEEK_SET);
+
+		long temp = sector_offset(FirstSectorofCluster + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus);
+		while (temp >= offset)
+		{
+
+			fread(&DIR_entry, sizeof(struct DIR), 1, file);
+
+			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
+			{
+				continue;
+			}
+			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			{
+				return DIR_entry;
+			}
+			else if (DIR_entry.DIR_Name[0] == 0x05)
+			{
+				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
+			}
+
+			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
+			{
+
+				for (i=0; i<11; i++)
+				{
+					fileName[i]=DIR_entry.DIR_Name[i];
+				}
+
+				fileName[11]= '\0';
+
+				if (strcmp(fileName, name) == 0)
+				{
+					return DIR_entry;
+				}
+			}
+			offset += 32;
+		}
+
+		cluster = FAT_32(cluster);
+
+		if (END_OF_CLUSTER < cluster)
+		{
+			break;
+		}
+	}
+}
+
+long sector_offset(long sec)
+{
+	return (bpb_32.BPB_BytsPerSec * sec);
+}
+
+unsigned int FAT_32(unsigned int cluster)
+{
+	unsigned int nextCluster;
+	long offset;
+
+	offset = bpb_32.BPB_RsvdSecCnt*bpb_32.BPB_BytsPerSec + cluster*4;
+	fseek(file, offset, SEEK_SET);
+	fread(&nextCluster, sizeof(unsigned int), 1, file);
+
+	return nextCluster;
+}
+
+long return_cluster_path(char *string){
+	int i = 1;
+	int j = 0;
+	long cluster;
+	unsigned char name[11];
+	cluster = bpb_32.BPB_RootClus;
+
+	for(;;){
+		for (i; ; i++){
+
+			if (string[i] != '/' && string[i] != '\0'){
+				name[j] = string[i];
+			}
+			else{
+				name[j] = '\0';
+				break;
+			}		
+		}
+
+		if (strcmp(name, "") != 0)
+			cluster = return_cluster_dir(cluster, name);
+		else
+			break;
+	}
+	return cluster;
+}
+
+unsigned int return_cluster_dir(unsigned int cluster, char *name){
+	int i = 0;
+	char fileName[12];
+	long offset;
+	struct DIR DIR_entry;
+
+	for(;;){
+		offset = sector_offset(FirstSectorofCluster);
+		fseek(file, offset, SEEK_SET);
+
+		long temp = sector_offset(FirstSectorofCluster + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus);
+		while ( temp >= offset ){
+			fread(&DIR_entry, sizeof(struct DIR), 1, file);
+			offset+=32;
+
+			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
+				continue;
+			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+				break;
+			else if (DIR_entry.DIR_Name[0] == 0x05)
+				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
+
+			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG){
+
+				for (i; i < 11; i++)
+					fileName[i] = DIR_entry.DIR_Name[i];
+
+				fileName[11] = '\0';
+
+				if (strcmp(fileName, name) == 0)
+					return (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
+			}
+		}
+
+		cluster = FAT_32(cluster);
+
+		if (END_OF_CLUSTER < cluster)
+			break;
+	}
 }

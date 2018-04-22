@@ -115,6 +115,9 @@ long openedFile[100];
 struct BPB_32 bpb_32;
 FILE *file;
 
+unsigned int FirstDataSector;
+unsigned int FirstSectorofCluster;
+
 //FUNCTIONS
 int info();
 int ls(char *name);
@@ -169,6 +172,8 @@ int main(int argc, char* argv[])
 			{
 				printf("%s:%s>", fatImgName, workingDir);
 				scanf("%s", operation);
+				FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
+				FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
 
 				if (strcmp(operation, "exit") == 0)
 				{
@@ -279,23 +284,24 @@ int info()
 	//printf("Sectors per FAT: %d\n", bpb_32.BPB_FATSz32);
 	printf("Number of FATs: %d\n", bpb_32.BPB_NumFATs);
 	printf("Root Cluster: %d\n", bpb_32.BPB_RootClus);
+	printf("First Data Sector: %x\n", FirstDataSector);
 	return 0;
 }
 
 int ls(char *name)
 {
 	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
-	int i = 0;
+	//int i = 0;
 	//iterate through while i*FAT32....CreatedByYou < sector_size
-	for(i; (i * FAT32DirectoryStructureCreatedByYou) < sector_size; i++)
-	{
+	//for(i; (i * FAT32DirectoryStructureCreatedByYou) < sector_size; i++)
+	//{
 		//When that happens lookup FAT[current_cluster_number]
 		//if(FAT[current_cluster_number!=0x0FFFFFF8 || 0x0FFFFFFF || 0x00000000])
 			//current_cluster_number = FAT[current_cluster_number]
 			//reset loop
 		//else
 			//break
-	}
+	//}
 }
 
 int cd(char *name)

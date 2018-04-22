@@ -302,7 +302,7 @@ int ls(int current_cluster_number)
 	fseek(file, offset, SEEK_SET);
 	printf("OFFSET: %d\n", offset);
 	printf("Bytes per sector: %d\n", bpb_32.BPB_BytsPerSec);
-	printf("i * directory: %d\n", i*directory);
+	//printf("i * directory: %d\n", i*directory);
 	for (i = 0; offset < bpb_32.BPB_BytsPerSec; i++)
 	{
 		fread(&directory, sizeof(struct DIR), 1, file);
@@ -372,7 +372,7 @@ int cd(char *name)
 	{
 		workingDir[0] = '/';
 		workingDir[1] = '\0';
-		currCluster = bpb_32.BPB_RootClus;
+		current_cluster_number = bpb_32.BPB_RootClus;
 	}
 	else if (strcmp(name, "..") == 0)
 	{
@@ -400,12 +400,12 @@ int cd(char *name)
 			{
 				workingDir[i] = '\0';
 			}
-			currCluster = return_cluster_path(workingDir);
+			current_cluster_number = return_cluster_path(workingDir);
 		}
 	}
 	else
 	{
-		DIR_entry = find_file(currCluster, fileName);
+		DIR_entry = find_file(current_cluster_number, fileName);
 
 		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
 		{
@@ -415,7 +415,7 @@ int cd(char *name)
 		{
 			if (DIR_entry.DIR_Attr == 0x10)
 			{
-				currCluster = return_cluster_dir(currCluster, fileName);
+				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
 
 				while (workingDir[i] != '\0')
 				{

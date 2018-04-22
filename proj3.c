@@ -199,6 +199,9 @@ int main(int argc, char* argv[])
 				else if (strcmp(operation, "ls") == 0)
 				{
 					//FIGURE A WAY OUT TO DIFFERENTIATE BETWEEN EMPTY/NON-EMPTY
+					if (current_cluster_number == 0){
+						current_cluster_number = 2;
+					}
 					ls(current_cluster_number);
 					/*scanf("%s", name);
 					getchar();
@@ -298,26 +301,29 @@ int ls(int current_cluster_number)
 	struct DIR directory;
 	int i;
 	long offset;
-	offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
-	fseek(file, offset, SEEK_SET);
-	printf("OFFSET: %d\n", offset);
-	printf("Bytes per sector: %d\n", bpb_32.BPB_BytsPerSec);
-	//printf("i * directory: %d\n", i*directory);
-	for (i = 0; offset < bpb_32.BPB_BytsPerSec; i++)
-	{
-		fread(&directory, sizeof(struct DIR), 1, file);
-
-		printf("TESTING *** [%d]\n",directory.DIR_Attr);
-		if((FAT[current_cluster_number]!= 0x0FFFFFF8) || (FAT[current_cluster_number] != 0x0FFFFFFF) || (FAT[current_cluster_number] != 0x00000000))
+	long offset_total;
+	//offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
+	//offset_total = offset + bpb_32.BPB_BytsPerSec;
+	while (1){
+		offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
+		fseek(file, offset, SEEK_SET);
+		offset_total = offset + bpb_32.BPB_BytsPerSec;
+		while (offset < offset_total)
 		{
-
-			current_cluster_number = FAT[current_cluster_number];
-			ls(current_cluster_number);
-		}	
-		else
-		{
-			break;
+			printf("offset: %d\n", offset);
+			printf("offset + bpb: %d\n", offset_total);
+			fread(&directory, sizeof(struct DIR), 1, file);
+			offset += 32;
+			printf("TESTING *** [%d]\n",directory.DIR_Attr);
 		}
+		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) || (FAT_32(current_cluster_number) != 0x0FFFFFFF) || (FAT_32(current_cluster_number) != 0x00000000))
+			{
+				current_cluster_number = FAT_32(current_cluster_number);
+			}	
+			else
+			{
+				break;
+			}
 	}
 	//printf("%s\n", directory.DIR_Name);
 	//fread( ,sizeof(int), 1, file);

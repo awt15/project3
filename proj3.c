@@ -107,7 +107,7 @@ int readFileNum;
 int writeFileNum;
 
 unsigned int parentCluster;
-unsigned int currCluster;
+unsigned int current_cluster_number;
 
 long openedReadFile[100];
 long openedWriteFile[100];
@@ -118,11 +118,12 @@ FILE *file;
 
 unsigned int FirstDataSector;
 unsigned int FirstSectorofCluster;
+unsigned int * FAT;
 
 //FUNCTIONS
 int info();
 int ls(int cluster_number);
-int ls(char *name);
+int ls_name(char *name);
 int cd(char *name);
 int size();
 int create(char *name);
@@ -163,13 +164,15 @@ int main(int argc, char* argv[])
 			fread(&bpb_32, sizeof(struct BPB_32), 1, file);
 
 			fatImgName = argv[1];
-			currCluster = bpb_32.BPB_RootClus;
+			current_cluster_number = bpb_32.BPB_RootClus;
 
 			workingDir[0] = '/';
 			workingDir[1] = '\0';		
 			parentDir[0] = '\0';
 			parentCluster = -1;
 			
+			FAT = bpb_32.BPB_RsvdSecCnt * bpb_32.BPB_BytsPerSec;
+
 			for(;;)
 			{
 				printf("%s:%s>", fatImgName, workingDir);
@@ -190,9 +193,11 @@ int main(int argc, char* argv[])
 				else if (strcmp(operation, "ls") == 0)
 				{
 					//FIGURE A WAY OUT TO DIFFERENTIATE BETWEEN EMPTY/NON-EMPTY
-					scanf("%s", name);
+					ls(current_cluster_number);
+					/*scanf("%s", name);
 					getchar();
-					ls(name);
+					ls_name(name);*/
+
 				}
 				else if (strcmp(operation, "cd") == 0)
 				{
@@ -264,7 +269,6 @@ int main(int argc, char* argv[])
 
 int info()
 {
-	long offset;
 	struct FSI BPB_FSI_info;
 
 	//offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;
@@ -279,26 +283,41 @@ int info()
 	printf("Number of FATs: %d\n", bpb_32.BPB_NumFATs);
 	printf("Root Cluster: %d\n", bpb_32.BPB_RootClus);
 	printf("First Data Sector: %x\n", FirstDataSector);
+	printf("FAT: %x\n", FAT);
 	return 0;
 }
 //EMPTY LS
-int ls(int cluster_number)
-{
-	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
-	//int i = 0;
-	//iterate through while i*FAT32....CreatedByYou < sector_size
-	//for(i; (i * FAT32DirectoryStructureCreatedByYou) < sector_size; i++)
-	//{
-		//When that happens lookup FAT[current_cluster_number]
-		//if(FAT[current_cluster_number!=0x0FFFFFF8 || 0x0FFFFFFF || 0x00000000])
-			//current_cluster_number = FAT[current_cluster_number]
-			//reset loop
-		//else
-			//break
-	//}
+int ls(int current_cluster_number)
+{				
+	struct DIR directory;
+	int i;
+	long offset;
+	offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
+	fseek(file, offset, SEEK_SET);
+	printf("OFFSET: %d\n", offset);
+	printf("Bytes per sector: %d\n", bpb_32.BPB_BytsPerSec);
+	printf("i * directory: %d\n", i*directory);
+	for (i = 0; offset < bpb_32.BPB_BytsPerSec; i++)
+	{
+		fread(&directory, sizeof(struct DIR), 1, file);
+
+		printf("TESTING *** [%d]\n",directory.DIR_Attr);
+		if((FAT[current_cluster_number]!= 0x0FFFFFF8) || (FAT[current_cluster_number] != 0x0FFFFFFF) || (FAT[current_cluster_number] != 0x00000000))
+		{
+
+			current_cluster_number = FAT[current_cluster_number];
+			ls(current_cluster_number);
+		}	
+		else
+		{
+			break;
+		}
+	}
+	//printf("%s\n", directory.DIR_Name);
+	//fread( ,sizeof(int), 1, file);
 }
 //LS DIRECTORY
-int ls(char *name)
+int ls_name(char *name)
 {
 	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
 	//int i = 0;

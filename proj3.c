@@ -136,6 +136,12 @@ void close(char *name);
 void readfile();
 void writefile();
 
+struct DIR find_file(unsigned int cluster, char *name);
+long sector_offset(long sec);
+unsigned int FAT_32(unsigned int cluster);
+long return_cluster_path(char *string);
+unsigned int return_cluster_dir(unsigned int cluster, char *name);
+
 int main(int argc, char* argv[])
 {
 	int i = 0;

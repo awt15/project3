@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define END_OF_CLUSTER 0x0FFFFFF8
 #define ATTRIBUTE_NAME_LONG 0x0F
@@ -300,9 +301,11 @@ int ls(int current_cluster_number)
 {				
 	struct DIR directory;
 	int i;
+	int counter = 0;
 	long offset;
 	long offset_total;
-	char dir_content[10];
+	const int MAX = 15;
+	char dir_content[MAX];
 	//offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
 	//offset_total = offset + bpb_32.BPB_BytsPerSec;
 	while (1){
@@ -311,19 +314,19 @@ int ls(int current_cluster_number)
 		offset_total = offset + bpb_32.BPB_BytsPerSec;
 		while (offset < offset_total)
 		{
-			printf("offset: %d\n", offset);
-			printf("offset + bpb: %d\n", offset_total);
+			//printf("offset: %d\n", offset);
+			//printf("offset + bpb: %d\n", offset_total);
 			fread(&directory, sizeof(struct DIR), 1, file);
 			offset += 32;
 
-			if(directory.DIR_Name[0] == 0)	continue;
+			/*if(directory.DIR_Name[0] == 0)	continue;
 			else if(directory.DIR_Name[0] == 0xE5)	break;
 			else if(directory.DIR_Name[0] == 0x5)	directory.DIR_Name[0] = 0xE5;
-
+			*/
 			if(directory.DIR_Attr == 0x10 || directory.DIR_Attr == 0x20)
 			{
-				printf("TESTING *** [%d]\n",directory.DIR_Attr);
-				for (int i = 0; i < 10; i++){
+				//printf("TESTING *** [%d]\n",directory.DIR_Attr);
+				/*for (int i = 0; i < 10; i++){
 					if (directory.DIR_Name[i] != ' '){
 						dir_content[i] = directory.DIR_Name[i];
 					}
@@ -333,9 +336,30 @@ int ls(int current_cluster_number)
 					}
 				}
 				dir_content[10] = '\0';
-				//save name and print it.
+				*/
+				while (counter < MAX)
+				{
+					if (directory.DIR_Name[counter] == ' ')
+					{
+						dir_content[counter] = '\0';
+						dir_content[MAX - 1] = '\0';
+						break;
+					}
+					else
+					{
+						dir_content[counter] = directory.DIR_Name[counter];
+					}
+					counter++;
+				}
+				counter = 0;
+				printf("%s\n", dir_content);
+				/*for (i = 0; i < MAX; i++)
+				{
+					dir_content[i] = '\0';
+
+				}*/
+				memset(dir_content, 0, sizeof(dir_content));
 			}
-			//printf("%s\n", dir_content);
 		}
 		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) && (FAT_32(current_cluster_number) != 0x0FFFFFFF) && (FAT_32(current_cluster_number) != 0x00000000))
 		{

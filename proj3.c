@@ -314,16 +314,20 @@ int ls(int current_cluster_number)
 			printf("offset + bpb: %d\n", offset_total);
 			fread(&directory, sizeof(struct DIR), 1, file);
 			offset += 32;
-			printf("TESTING *** [%d]\n",directory.DIR_Attr);
+			if(directory.DIR_Attr == 0x10 || directory.DIR_Attr == 0x20)
+			{
+				printf("TESTING *** [%d]\n",directory.DIR_Attr);
+				//save name and print it.
+			}
 		}
 		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) || (FAT_32(current_cluster_number) != 0x0FFFFFFF) || (FAT_32(current_cluster_number) != 0x00000000))
-			{
-				current_cluster_number = FAT_32(current_cluster_number);
-			}	
-			else
-			{
-				break;
-			}
+		{
+			current_cluster_number = FAT_32(current_cluster_number);
+		}	
+		else
+		{
+			break;
+		}
 	}
 	//printf("%s\n", directory.DIR_Name);
 	//fread( ,sizeof(int), 1, file);

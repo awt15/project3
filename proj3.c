@@ -180,13 +180,16 @@ int main(int argc, char* argv[])
 			
 			FAT = bpb_32.BPB_RsvdSecCnt * bpb_32.BPB_BytsPerSec;
 
+			FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
+			FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
+
 			for(;;)
 			{
 				printf("%s:%s>", fatImgName, workingDir);
 				scanf("%s", operation);
-				
-				FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
-				FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
+
+				//FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
+				//FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
 
 				if (strcmp(operation, "exit") == 0)
 				{
@@ -361,6 +364,7 @@ int ls(int current_cluster_number)
 				memset(dir_content, 0, sizeof(dir_content));
 			}
 		}
+		printf("TESTING LS: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) && (FAT_32(current_cluster_number) != 0x0FFFFFFF) && (FAT_32(current_cluster_number) != 0x00000000))
 		{
 			current_cluster_number = FAT_32(current_cluster_number);
@@ -466,26 +470,35 @@ int cd(char *name)
 		{
 			if (DIR_entry.DIR_Attr == 0x10)
 			{
+				printf("TESTING: CD ELSE SUB\n");
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-
+				printf("TESTING CD: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
+				i = 0;
+				j = 0;
 				while (workingDir[i] != '\0')
 				{
+					printf("TESTING: LOOP1\n");
 					++i;
 				}
+				printf("WORKING DIR: %s\n", workingDir);
 
 				if (workingDir[i - 1] != '/')
 				{
 					workingDir[i++] = '/';
 				}
+				printf("WORKING DIR: %s\n", workingDir);
 
 				while (name[j] != '\0')
 				{
+					printf("TESTING: LOOP2\n");
 					workingDir[i] = name[j];
 					++i;
 					++j;
 				}
+				printf("WORKING DIR: %s\n", workingDir);
 
 				workingDir[i] = '\0';
+				printf("WORKING DIR: %s\n", workingDir);
 			}
 			else
 			{
@@ -493,6 +506,7 @@ int cd(char *name)
 			}
 		}
 	}
+	printf("TESTING CD 2: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 	return 0;
 }
 
@@ -553,7 +567,7 @@ struct DIR find_file(unsigned int cluster, char *name)
 		offset = sector_offset(FirstSectorofCluster);
 		fseek(file, offset, SEEK_SET);
 
-		long temp = sector_offset(FirstSectorofCluster + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus);
+		long temp = offset + bpb_32.BPB_BytsPerSec;
 		while (temp >= offset)
 		{
 
@@ -649,15 +663,24 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 	long offset;
 	struct DIR DIR_entry;
 
-	for(;;){
+	for(;;)
+	{
 		offset = sector_offset(FirstSectorofCluster);
+		//printf("TESTING OFFSET: %d\n", offset);
 		fseek(file, offset, SEEK_SET);
 
-		long temp = sector_offset(FirstSectorofCluster + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus);
-		while ( temp >= offset ){
+
+		//printf("TESTING: Return DIR\n");
+		long temp = sector_offset(FirstSectorofCluster + bpb_32.BPB_SecPerClus);
+		//long temp = FirstSectorofCluster*bpb_32.BPB_BytsPerSec + bpb_32.BPB_BytsPerSec*bpb_32.BPB_SecPerClus;
+		//printf("TESTING TEMP: %d\n", temp);
+		while ( offset < temp )
+		{
+			printf("TESTING: While Loop DIR\n");
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 			offset+=32;
-
+			printf("TESTING TEMP: %d\n", temp);
+			printf("TESTING OFFSET: %d\n", offset);
 			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
 				continue;
 			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
@@ -666,20 +689,43 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
 
 			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG){
-
-				for (i; i < 11; i++)
+				printf("TEST DIR NAME: %s\n", DIR_entry.DIR_Name);
+				printf("TEST FILE NAME: %s\n", fileName);
+				for (i = 0; i < 11; i++)
+				{
 					fileName[i] = DIR_entry.DIR_Name[i];
+					printf("CHAR FILE: %c\n", fileName[i]);
+					printf("DIR NAME: %c\n",DIR_entry.DIR_Name[i]);
+				}	
+
 
 				fileName[11] = '\0';
-
-				if (strcmp(fileName, name) == 0)
-					return (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
 			}
+
+			if ((strcmp(fileName, name) == 0) && DIR_entry.DIR_Attr == 0x10)
+			{		
+				printf("fileName: %s\n", fileName);
+				printf("name: %s\n", name);
+				return (DIR_entry.DIR_FstClusHI *0x100 + DIR_entry.DIR_FstClusLO);
+			}
+			printf("TESTING: End of while loop.\n");
 		}
-
+		printf("TESTING: AFTER while loop.\n");
 		cluster = FAT_32(cluster);
-
-		if (END_OF_CLUSTER < cluster)
+		if((cluster == 0x0FFFFFF8) || (cluster == 0x0FFFFFFF) || (cluster == 0x00000000))
+		{
 			break;
+		}	
+		/*
+		cluster = FAT_32(cluster);
+		if((cluster != 0x0FFFFFF8) && (cluster != 0x0FFFFFFF) && (cluster != 0x00000000))
+		{
+			current_cluster_number = cluster;
+		}	
+		else
+		{
+			break;
+		}
+		*/
 	}
 }

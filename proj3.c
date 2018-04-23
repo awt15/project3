@@ -302,6 +302,7 @@ int ls(int current_cluster_number)
 	int i;
 	long offset;
 	long offset_total;
+	char dir_content[10];
 	//offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
 	//offset_total = offset + bpb_32.BPB_BytsPerSec;
 	while (1){
@@ -314,13 +315,29 @@ int ls(int current_cluster_number)
 			printf("offset + bpb: %d\n", offset_total);
 			fread(&directory, sizeof(struct DIR), 1, file);
 			offset += 32;
+
+			if(directory.DIR_Name[0] == 0)	continue;
+			else if(directory.DIR_Name[0] == 0xE5)	break;
+			else if(directory.DIR_Name[0] == 0x5)	directory.DIR_Name[0] = 0xE5;
+
 			if(directory.DIR_Attr == 0x10 || directory.DIR_Attr == 0x20)
 			{
 				printf("TESTING *** [%d]\n",directory.DIR_Attr);
+				for (int i = 0; i < 10; i++){
+					if (directory.DIR_Name[i] != ' '){
+						dir_content[i] = directory.DIR_Name[i];
+					}
+					else{
+						dir_content[i] = '\0';
+						break;
+					}
+				}
+				dir_content[10] = '\0';
 				//save name and print it.
 			}
+			//printf("%s\n", dir_content);
 		}
-		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) || (FAT_32(current_cluster_number) != 0x0FFFFFFF) || (FAT_32(current_cluster_number) != 0x00000000))
+		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) && (FAT_32(current_cluster_number) != 0x0FFFFFFF) && (FAT_32(current_cluster_number) != 0x00000000))
 		{
 			current_cluster_number = FAT_32(current_cluster_number);
 		}	

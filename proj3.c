@@ -312,7 +312,8 @@ int ls(int current_cluster_number)
 	long offset_total;
 	const int MAX = 15;
 	char dir_content[MAX];
-	offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
+	//offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
+	offset = first_sector_cluster(current_cluster_number) * bpb_32.BPB_BytsPerSec;
 	offset_total = offset + bpb_32.BPB_BytsPerSec;
 
 	while (1){

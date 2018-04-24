@@ -126,7 +126,7 @@ int info();
 int ls(int cluster_number);
 int ls_name(char *name);
 int cd(char *name);
-int size();
+unsigned int size(char* file);
 int create(char *name);
 int mkdir(char *name);
 int rm(char *name);
@@ -142,6 +142,7 @@ long sector_offset(long sec);
 unsigned int FAT_32(unsigned int cluster);
 long return_cluster_path(char *string);
 unsigned int return_cluster_dir(unsigned int cluster, char *name);
+long first_sector_cluster(unsigned int cluster);
 
 int main(int argc, char* argv[])
 {
@@ -220,7 +221,9 @@ int main(int argc, char* argv[])
 				}
 				else if (strcmp(operation, "size") == 0)
 				{
-					size();
+					scanf("%s", name);
+					getchar();
+					printf("%d\n", size(name));
 				}
 				else if (strcmp(operation, "create") == 0)
 				{
@@ -510,9 +513,44 @@ int cd(char *name)
 	return 0;
 }
 
-int size()
+unsigned int size(char* file)
 {
+	struct DIR curDIR;
+	long offset;
+	unsigned int size;
+	int sector;
+	unsigned int cluster;
 
+	cluster = current_cluster_number;
+	while(cluster < END_OF_CLUSTER)
+	{
+		sector = first_sector_cluster(cluster);
+		//printf("sec: %d\n",sector);
+		offset = sector * bpb_32.BPB_BytsPerSec;
+		//printf("off: %d\n",offset);
+		while(offset < (sector * bpb_32.BPB_BytsPerSec + bpb_32.BPB_BytsPerSec*bpb_32.BPB_SecPerClus))
+		{
+			//curDIR = HAS TO BE WHATEVER THE FILE ITS CHECKING IS I THINK
+			if(curDIR.DIR_Name[0] == ENTRY_EMPTY)
+			{
+				continue;
+			}
+			else if(curDIR.DIR_Name[0] == ENTRY_LAST)
+			{
+				break;
+			}
+			if(curDIR.DIR_Attr != ATTRIBUTE_NAME_LONG)
+			{
+				if(strcmp(curDIR.DIR_Name, file) == 0)
+				{
+					size = curDIR.DIR_FileSize;
+					return size;
+				}
+			}
+			offset += 32;
+		}
+		cluster = FAT_32(cluster);
+	}
 }
 
 int create (char *name)
@@ -728,4 +766,9 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 		}
 		*/
 	}
+}
+
+long first_sector_cluster(unsigned int cluster)
+{
+	return ( (cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
 }

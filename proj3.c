@@ -314,7 +314,9 @@ int ls(int current_cluster_number)
 	char dir_content[MAX];
 	offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
 	offset_total = offset + bpb_32.BPB_BytsPerSec;
+
 	while (1){
+		printf("TESTING LS: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 		fseek(file, offset, SEEK_SET);
 		while (offset < offset_total)
 		{
@@ -351,8 +353,6 @@ int ls(int current_cluster_number)
 			break;
 		}
 	}
-	//printf("%s\n", directory.DIR_Name);
-	//fread( ,sizeof(int), 1, file);
 }
 //LS DIRECTORY
 int ls_name(char *name)
@@ -449,33 +449,26 @@ int cd(char *name)
 			{
 				printf("TESTING: CD ELSE SUB\n");
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-				printf("TESTING CD: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 				i = 0;
 				j = 0;
 				while (workingDir[i] != '\0')
 				{
-					printf("TESTING: LOOP1\n");
 					++i;
 				}
-				printf("WORKING DIR: %s\n", workingDir);
 
 				if (workingDir[i - 1] != '/')
 				{
 					workingDir[i++] = '/';
 				}
-				printf("WORKING DIR: %s\n", workingDir);
 
 				while (name[j] != '\0')
 				{
-					printf("TESTING: LOOP2\n");
 					workingDir[i] = name[j];
 					++i;
 					++j;
 				}
-				printf("WORKING DIR: %s\n", workingDir);
 
 				workingDir[i] = '\0';
-				printf("WORKING DIR: %s\n", workingDir);
 			}
 			else
 			{
@@ -701,13 +694,9 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
 
 			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG){
-				printf("TEST DIR NAME: %s\n", DIR_entry.DIR_Name);
-				printf("TEST FILE NAME: %s\n", fileName);
 				for (i = 0; i < 11; i++)
 				{
 					fileName[i] = DIR_entry.DIR_Name[i];
-					printf("CHAR FILE: %c\n", fileName[i]);
-					printf("DIR NAME: %c\n",DIR_entry.DIR_Name[i]);
 				}	
 
 
@@ -720,7 +709,6 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 				printf("name: %s\n", name);
 				return (DIR_entry.DIR_FstClusHI *0x100 + DIR_entry.DIR_FstClusLO);
 			}
-			printf("TESTING: End of while loop.\n");
 		}
 		printf("TESTING: AFTER while loop.\n");
 		cluster = FAT_32(cluster);
@@ -728,17 +716,6 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 		{
 			break;
 		}	
-		/*
-		cluster = FAT_32(cluster);
-		if((cluster != 0x0FFFFFF8) && (cluster != 0x0FFFFFFF) && (cluster != 0x00000000))
-		{
-			current_cluster_number = cluster;
-		}	
-		else
-		{
-			break;
-		}
-		*/
 	}
 }
 

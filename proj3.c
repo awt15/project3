@@ -312,37 +312,16 @@ int ls(int current_cluster_number)
 	long offset_total;
 	const int MAX = 15;
 	char dir_content[MAX];
-	//offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
-	//offset_total = offset + bpb_32.BPB_BytsPerSec;
+	offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
+	offset_total = offset + bpb_32.BPB_BytsPerSec;
 	while (1){
-		offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
 		fseek(file, offset, SEEK_SET);
-		offset_total = offset + bpb_32.BPB_BytsPerSec;
 		while (offset < offset_total)
 		{
-			//printf("offset: %d\n", offset);
-			//printf("offset + bpb: %d\n", offset_total);
 			fread(&directory, sizeof(struct DIR), 1, file);
 			offset += 32;
-
-			/*if(directory.DIR_Name[0] == 0)	continue;
-			else if(directory.DIR_Name[0] == 0xE5)	break;
-			else if(directory.DIR_Name[0] == 0x5)	directory.DIR_Name[0] = 0xE5;
-			*/
 			if(directory.DIR_Attr == 0x10 || directory.DIR_Attr == 0x20)
 			{
-				//printf("TESTING *** [%d]\n",directory.DIR_Attr);
-				/*for (int i = 0; i < 10; i++){
-					if (directory.DIR_Name[i] != ' '){
-						dir_content[i] = directory.DIR_Name[i];
-					}
-					else{
-						dir_content[i] = '\0';
-						break;
-					}
-				}
-				dir_content[10] = '\0';
-				*/
 				while (counter < MAX)
 				{
 					if (directory.DIR_Name[counter] == ' ')
@@ -359,21 +338,16 @@ int ls(int current_cluster_number)
 				}
 				counter = 0;
 				printf("%s\n", dir_content);
-				/*for (i = 0; i < MAX; i++)
-				{
-					dir_content[i] = '\0';
-
-				}*/
 				memset(dir_content, 0, sizeof(dir_content));
 			}
 		}
-		printf("TESTING LS: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 		if((FAT_32(current_cluster_number)!= 0x0FFFFFF8) && (FAT_32(current_cluster_number) != 0x0FFFFFFF) && (FAT_32(current_cluster_number) != 0x00000000))
 		{
 			current_cluster_number = FAT_32(current_cluster_number);
 		}	
 		else
 		{
+			current_cluster_number = FAT_32(current_cluster_number);
 			break;
 		}
 	}

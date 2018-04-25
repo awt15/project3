@@ -312,12 +312,11 @@ int ls(int current_cluster_number)
 	long offset_total;
 	const int MAX = 15;
 	char dir_content[MAX];
-	//offset = FirstSectorofCluster * bpb_32.BPB_BytsPerSec;
-	offset = first_sector_cluster(current_cluster_number) * bpb_32.BPB_BytsPerSec;
-	offset_total = offset + bpb_32.BPB_BytsPerSec;
 
 	while (1){
-		printf("TESTING LS: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
+		offset = first_sector_cluster(current_cluster_number) * bpb_32.BPB_BytsPerSec;
+		offset_total = offset + bpb_32.BPB_BytsPerSec;
+		//printf("TESTING LS BEFORE CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 		fseek(file, offset, SEEK_SET);
 		while (offset < offset_total)
 		{
@@ -350,9 +349,11 @@ int ls(int current_cluster_number)
 		}	
 		else
 		{
-			current_cluster_number = FAT_32(current_cluster_number);
+		//	current_cluster_number = FAT_32(current_cluster_number);
+		//	printf("TESTING LS AFTER CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 			break;
-		}
+		}	
+		//	printf("TESTING LS AFTER CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 	}
 }
 //LS DIRECTORY

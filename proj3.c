@@ -203,15 +203,26 @@ int main(int argc, char* argv[])
 				}
 				else if (strcmp(operation, "ls") == 0)
 				{
-					//FIGURE A WAY OUT TO DIFFERENTIATE BETWEEN EMPTY/NON-EMPTY
-					if (current_cluster_number == 0){
+					if (current_cluster_number == 0)
+					{
 						current_cluster_number = 2;
 					}
-					ls(current_cluster_number);
-					/*scanf("%s", name);
-					getchar();
-					ls_name(name);*/
 
+					fgets(name, sizeof(name), stdin);
+					//scanf("%s", name);
+					if(sscanf(name,"%s\n", name) != 1)
+					{
+						ls(current_cluster_number);
+						//getchar();
+						//ls_name(name);
+					}
+					else
+					{
+						printf("Name: %s\n", name);
+						getchar();
+						ls_name(name);
+						//ls(current_cluster_number);
+					}
 				}
 				else if (strcmp(operation, "cd") == 0)
 				{
@@ -359,18 +370,10 @@ int ls(int current_cluster_number)
 //LS DIRECTORY
 int ls_name(char *name)
 {
-	//Looks up all directories inside the current directory (FSEEK, i*FAT32DirectoryStructureCreatedByYou, i == counter)
-	//int i = 0;
-	//iterate through while i*FAT32....CreatedByYou < sector_size
-	//for(i; (i * FAT32DirectoryStructureCreatedByYou) < sector_size; i++)
-	//{
-		//When that happens lookup FAT[current_cluster_number]
-		//if(FAT[current_cluster_number!=0x0FFFFFF8 || 0x0FFFFFFF || 0x00000000])
-			//current_cluster_number = FAT[current_cluster_number]
-			//reset loop
-		//else
-			//break
-	//}
+	cd(name);
+	ls(current_cluster_number);
+	cd("..");
+	return 0;
 }
 
 int cd(char *name)

@@ -209,19 +209,13 @@ int main(int argc, char* argv[])
 					}
 
 					fgets(name, sizeof(name), stdin);
-					//scanf("%s", name);
 					if(sscanf(name,"%s\n", name) != 1)
 					{
 						ls(current_cluster_number);
-						//getchar();
-						//ls_name(name);
 					}
 					else
 					{
-						printf("Name: %s\n", name);
-						getchar();
 						ls_name(name);
-						//ls(current_cluster_number);
 					}
 				}
 				else if (strcmp(operation, "cd") == 0)
@@ -452,7 +446,6 @@ int cd(char *name)
 		{
 			if (DIR_entry.DIR_Attr == 0x10)
 			{
-				printf("TESTING: CD ELSE SUB\n");
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
 				i = 0;
 				j = 0;
@@ -481,7 +474,6 @@ int cd(char *name)
 			}
 		}
 	}
-	printf("TESTING CD 2: CURRENT CLUSTER NUM: %d\n", current_cluster_number);
 	return 0;
 }
 
@@ -676,21 +668,13 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 	for(;;)
 	{
 		offset = sector_offset(FirstSectorofCluster);
-		//printf("TESTING OFFSET: %d\n", offset);
 		fseek(file, offset, SEEK_SET);
 
-
-		//printf("TESTING: Return DIR\n");
 		long temp = sector_offset(FirstSectorofCluster + bpb_32.BPB_SecPerClus);
-		//long temp = FirstSectorofCluster*bpb_32.BPB_BytsPerSec + bpb_32.BPB_BytsPerSec*bpb_32.BPB_SecPerClus;
-		//printf("TESTING TEMP: %d\n", temp);
 		while ( offset < temp )
 		{
-			printf("TESTING: While Loop DIR\n");
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 			offset+=32;
-			printf("TESTING TEMP: %d\n", temp);
-			printf("TESTING OFFSET: %d\n", offset);
 			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
 				continue;
 			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
@@ -710,12 +694,9 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 
 			if ((strcmp(fileName, name) == 0) && DIR_entry.DIR_Attr == 0x10)
 			{		
-				printf("fileName: %s\n", fileName);
-				printf("name: %s\n", name);
 				return (DIR_entry.DIR_FstClusHI *0x100 + DIR_entry.DIR_FstClusLO);
 			}
 		}
-		printf("TESTING: AFTER while loop.\n");
 		cluster = FAT_32(cluster);
 		if((cluster == 0x0FFFFFF8) || (cluster == 0x0FFFFFFF) || (cluster == 0x00000000))
 		{

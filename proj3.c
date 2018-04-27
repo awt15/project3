@@ -221,6 +221,8 @@ int main(int argc, char* argv[])
 				else if (strcmp(operation, "cd") == 0)
 				{
 					scanf("%s", name);
+					if(strcmp(name,"..") != 0)
+						parentCluster = current_cluster_number;
 					getchar();
 					cd(name);
 				}
@@ -372,7 +374,6 @@ int cd(char *name)
 	int j = 0;
 	char fileName[12];
 	struct DIR DIR_entry;
- 
 	while (name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
@@ -410,6 +411,7 @@ int cd(char *name)
 		}
 		else
 		{	
+		printf("TESTING WE IN HERE 2\n");
 			while (workingDir[i] != '\0')
 			{
 				++i;
@@ -427,7 +429,11 @@ int cd(char *name)
 			{
 				workingDir[i] = '\0';
 			}
+			printf("TESTING CLUSTER NUMBER BEFORE %d\n", current_cluster_number);
+			printf("TESTING WORKING DIR: %s\n", workingDir);
 			current_cluster_number = return_cluster_path(workingDir);
+			//current_cluster_number = parentCluster;
+			printf("TESTING CLUSTER NUMBER AFTER %d\n", current_cluster_number);
 		}
 	}
 	else
@@ -442,7 +448,6 @@ int cd(char *name)
 			if (DIR_entry.DIR_Attr == 0x10)
 			{
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-				printf("TESTING CLUSTER NUMBER IF LOOP: %d\n", current_cluster_number);
 				i = 0;
 				j = 0;
 				while (workingDir[i] != '\0')
@@ -470,7 +475,6 @@ int cd(char *name)
 			}
 		}
 	}
-	printf("TESTING CLUSTER NUMBER: %d\n", current_cluster_number);
 	return 0;
 }
 
@@ -634,21 +638,27 @@ long return_cluster_path(char *string){
 	long cluster;
 	unsigned char name[11];
 	cluster = bpb_32.BPB_RootClus;
-
 	for(;;){
 		for (i; ; i++){
-
-			if (string[i] != '/' && string[i] != '\0'){
+			if (string[i] != '\0'){
 				name[j] = string[i];
+				j++;
 			}
 			else{
 				name[j] = '\0';
+				j = 0;
 				break;
 			}		
 		}
 
+		printf("testing name: %s\n", name);
 		if (strcmp(name, "") != 0)
+		{
+			printf("testing name loop: %s\n", name);
+			printf("cluster loop: %d\n", cluster);
 			cluster = return_cluster_dir(cluster, name);
+			printf("cluster loop: %d\n", cluster);
+		}
 		else
 			break;
 	}
@@ -660,7 +670,6 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 	char fileName[12];
 	long offset;
 	struct DIR DIR_entry;
-	printf("TESTING CURRENT CLUSTER NUMBER IN FUNC BEFORE: %d\n", current_cluster_number);
 	for(;;)
 	{
 		offset = sector_offset(first_sector_cluster(current_cluster_number));
@@ -670,7 +679,7 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 		while ( offset < temp )
 		{
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
-			offset+=32;
+			offset+=OFFSET_CONST;
 			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
 				continue;
 			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
@@ -689,7 +698,6 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 
 			if ((strcmp(fileName, name) == 0) && DIR_entry.DIR_Attr == 0x10)
 			{		
-				printf("TESTING CURRENT CLUSTER NUMBER IN FUNC AFTER: %d\n", DIR_entry.DIR_FstClusHI *0x100 + DIR_entry.DIR_FstClusLO);
 				return (DIR_entry.DIR_FstClusHI *0x100 + DIR_entry.DIR_FstClusLO);
 			}
 		}

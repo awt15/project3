@@ -11,7 +11,6 @@
 #define ATTRIBUTE_NAME_LONG 0x0F
 #define ENTRY_LAST 0x00
 #define ENTRY_EMPTY 0xE5
-#define ATTR_CONST 0x20
 #define CLUSTER_END 0xFFFFFFFF
 #define OFFSET_CONST 32
 
@@ -136,7 +135,6 @@ void open(char *name, char *mode);
 void close(char *name);
 void readfile();
 void writefile();
-unsigned int empty_cluster(unsigned int cluster);
 
 struct DIR find_file(unsigned int cluster, char *name);
 long sector_offset(long sec);
@@ -528,9 +526,21 @@ int create (char *name)
 
 int mkdir (char *name)
 {
-	printf("TESTING MKDIR\n");
-	int empty_cluster_number = empty_cluster();
+	int ec_number = empty_cluster();
 	printf("THIS IS EMPTY CLUSTER: %d\n", empty_cluster_number);
+
+	if(ec_number != 1)
+	{
+		//SET FAT[i] = 0X0FFFFFF8
+		//SET FAT[current_cluster number = hexcode of 'i'
+
+		//fwrite, set attr to 0x10
+		//dir_clusHI = ec_number/0x100
+		//dir_clusLO = ec_number%0x100
+		//dir_NTRes = 0
+		//dir_FileSize = 0
+		//do .. and .
+	}
 }
 
 int rm (char *name)
@@ -540,70 +550,6 @@ int rm (char *name)
 
 int rmdir (char *name)
 {
-	unsigned int empty;
-	empty = empty_cluster();
-	printf("Empty: %d\n", empty);
-
-
-	int i = 0;
-	int j = 0;
-	char fileName[12];
-	struct DIR DIR_entry;
-	char empty_space[32];
-	while (name[i] != '\0')
-	{
-		if (name[i] >= 'a' && name[i] <= 'z')
-		{
-			name[i] -= OFFSET_CONST;
-		}
-		fileName[i] = name[i];
-		++i;
-	}
-
-	while (i < 11)
-	{
-		fileName[i] = ' ';
-		++i;
-	}
-
-	fileName[i] = '\0';
-	
-	if (strcmp(name, ".") == 0)
-	{
-		//root?		
-	}
-	else if (strcmp(name, "/") == 0)
-	{
-		workingDir[0] = '/';
-		workingDir[1] = '\0';
-		current_cluster_number = bpb_32.BPB_RootClus;
-	}
-	else if (strcmp(name, "..") == 0)
-	{
-		
-	}
-	else
-	{
-		DIR_entry = find_file(current_cluster_number, fileName);
-		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
-		{
-			printf("Error: No directory found!\n");
-		}
-		else 
-		{
-			if (DIR_entry.DIR_Attr == 0x10)
-			{
-				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-				fseek(file, offset, SEEK_SET);
-				fwrite(&empty_space, 32, 1, file);
-			}
-			else
-			{
-				printf("Error: That is not a directory!\n");
-			}
-		}
-	}
-	return 0;
 
 }
 

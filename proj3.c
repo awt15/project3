@@ -640,36 +640,43 @@ int rm (char *name)
 	}
 
 	DIR_entry = find_file(current_cluster_number, fileName);
+	printf("TESTING DIR_entry name: %s\n", DIR_entry.DIR_Name);
 	offset = return_offset(current_cluster_number, fileName);
 
-	if(DIR_entry.DIR_Name[0] != 0)
+	if(DIR_entry.DIR_Attr == 0x10)
 	{
-		if(DIR_entry.DIR_Attr == 0x20)
+		printf("Error: This is a directory\n");
+		return CLUSTER_END;
+		//return 0xFFFE;
+	}
+	else if(DIR_entry.DIR_Attr == 0x20)
+	{
+		if(!unopened(offset))
 		{
-			if(!unopened(offset))
-			{
-				printf("Error: Already Opened\n");
-			}
-			else
-			{
-				nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
-				empty_val_cluster(nextCluster);
-				fseek(file, offset, SEEK_SET);
-				fwrite(&empty, OFFSET_CONST, 1, file);
-				return 0xFFFE;	
-			}
+			printf("Error: Already Opened\n");
 		}
 		else
 		{
-			printf("Error: Not a File\n");
-			return 0xFFFE;
+			nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
+			empty_val_cluster(nextCluster);
+			fseek(file, offset, SEEK_SET);
+			fwrite(&empty, OFFSET_CONST, 1, file);
+			return CLUSTER_END;
+			//return 0xFFFE;	
 		}
 	}
 	else
 	{
+		printf("Error: Not a File\n");
+		return CLUSTER_END;
+		//return 0xFFFE;
+	}
+/*	else
+	{
 		printf("Error: No such Entry\n");
 		return 0xFFFE;
 	}
+*/
 }
 
 int rmdir (char *name)

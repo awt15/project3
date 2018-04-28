@@ -492,42 +492,45 @@ int cd(char *name)
 
 unsigned int size(char* file)
 {
-	struct DIR curDIR;
-	long offset;
-	unsigned int size;
-	int sector;
-	unsigned int cluster;
-
-	cluster = current_cluster_number;
-	while(cluster < END_OF_CLUSTER)
+	int i = 0;
+	int j = 0;
+	char fileName[12];
+	struct DIR DIR_entry;
+	while (file[i] != '\0')
 	{
-		sector = first_sector_cluster(cluster);
-		//printf("sec: %d\n",sector);
-		offset = sector * bpb_32.BPB_BytsPerSec;
-		//printf("off: %d\n",offset);
-		while(offset < (sector * bpb_32.BPB_BytsPerSec + bpb_32.BPB_BytsPerSec*bpb_32.BPB_SecPerClus))
+		if (file[i] >= 'a' && file[i] <= 'z')
 		{
-			//curDIR = HAS TO BE WHATEVER THE FILE ITS CHECKING IS I THINK
-			if(curDIR.DIR_Name[0] == ENTRY_EMPTY)
-			{
-				continue;
-			}
-			else if(curDIR.DIR_Name[0] == ENTRY_LAST)
-			{
-				break;
-			}
-			if(curDIR.DIR_Attr != ATTRIBUTE_NAME_LONG)
-			{
-				if(strcmp(curDIR.DIR_Name, file) == 0)
-				{
-					size = curDIR.DIR_FileSize;
-					return size;
-				}
-			}
-			offset += 32;
+			file[i] -= OFFSET_CONST;
 		}
-		cluster = FAT_32(cluster);
+		fileName[i] = file[i];
+		++i;
 	}
+
+	while (i < 11)
+	{
+		fileName[i] = ' ';
+		++i;
+	}
+
+	fileName[i] = '\0';
+	
+	if (strcmp(file, ".") == 0)
+	{
+		//root?		
+	}
+	else
+	{
+		DIR_entry = find_file(current_cluster_number, fileName);
+		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+		{
+			printf("Error: FILENAME was not found!\n");
+		}
+		else 
+		{
+			return DIR_entry.DIR_FileSize;
+		}
+	}
+	return 0;
 }
 
 int create (char *name)

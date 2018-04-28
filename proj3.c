@@ -137,12 +137,23 @@ void readfile();
 void writefile();
 
 struct DIR find_file(unsigned int cluster, char *name);
-long sector_offset(long sec);
+
+void change_val_cluster(unsigned int value, unsigned int cluster);
+void empty_val_cluster(unsigned int cluster);
+
+int equals(unsigned char name1[], unsigned char name2[]);
+int unopened(long offset);
+
 unsigned int FAT_32(unsigned int cluster);
-long return_cluster_path(char *string);
 unsigned int return_cluster_dir(unsigned int cluster, char *name);
+
+long sector_offset(long sec);
 long first_sector_cluster(unsigned int cluster);
+long return_offset(unsigned int cluster, char *name);
+long return_cluster_path(char *string);
+
 long empty_cluster();
+
 
 int main(int argc, char* argv[])
 {
@@ -545,7 +556,118 @@ int mkdir (char *name)
 
 int rm (char *name)
 {
+	int i = 0;
+	int temp;
+	long offset;
+	unsigned int nextCluster;
+	char fileName[12];
+	char empty[32];
+	struct DIR DIR_entry;
 
+	while(name[i] != '\0')
+	{
+		if(name[i] >= 'a' && name[i] <= 'z')
+		{
+			name[i] -= OFFSET_CONST;
+		}
+		i++;
+	}
+
+	while(i < 8)
+	{
+		if(name[i] != '\0' && name[i] != '.')
+		{
+			fileName[i] = name[i];
+			i++;
+		}
+		else
+		{
+			temp = i;
+			break;
+		}
+	}
+
+	for(i = temp; i < 8; i++)
+	{
+		fileName[i] = ' ';
+	}
+
+	if(name[temp++] == '.')
+	{
+		i = 8;
+		while(i < 11)
+		{
+			if(name[temp] != '\0')
+			{
+				fileName[i] = name[temp++];
+			}
+			else
+			{
+				temp = i;
+				break;
+			}
+
+			if(i == 10)
+			{
+				temp = i++;
+			}
+			i++;
+		}
+		while(temp < 11)
+		{
+			fileName[temp] = ' ';
+			temp++;
+		}
+	}
+	else
+	{
+		while(temp < 11)
+		{
+			fileName[temp] = ' ';
+			temp++;
+		}
+	}
+	
+	fileName[11] = '\0';
+	i = 0;
+
+	while(i < 32)
+	{
+		empty[i] = '\0';
+		i++;
+	}
+
+	DIR_entry = find_file(current_cluster_number, fileName);
+	offset = return_offset(current_cluster_number, fileName);
+
+	if(DIR_entry.DIR_Name[0] != 0)
+	{
+		if(DIR_entry.DIR_Attr == 0x20)
+		{
+			if(!unopened(offset))
+			{
+				printf("Error: Already Opened\n");
+			}
+			else
+			{
+				nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
+				empty_val_cluster(nextCluster);
+				fseek(file, offset, SEEK_SET);
+				fwrite(&empty, OFFSET_CONST, 1, file);
+				return 0xFFFE;	
+			}
+		}
+		else
+		{
+			printf("Error: Not a File\n");
+			return 0xFFFE;
+		}
+	}
+	else
+	{
+		printf("Error: No such Entry\n");
+		return 0xFFFE;
+	}
 }
 
 int rmdir (char *name)
@@ -746,4 +868,115 @@ long empty_cluster()
 			i++;
 		}
 	}	
+}
+
+void change_val_cluster(unsigned int value, unsigned int cluster)
+{
+	long offset;
+	offset = bpb_32.BPB_RsvdSecCnt * bpb_32.BPB_BytsPerSec + cluster * 4;
+	fseek(file, offset, SEEK_SET);
+	fwrite(&value, sizeof(unsigned int), 1, file);
+	fflush(file);
+}
+
+void empty_val_cluster(unsigned int cluster)
+{
+	int i = 0;
+	unsigned char *empty;
+	unsigned int value = 0;
+	long offset;
+
+	empty = (unsigned char *)malloc(sizeof(unsigned char) * bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus);
+
+	for (i; i < bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus; i++)
+	{
+		empty[i] = 0;
+	}
+
+	offset = bpb_32.BPB_RsvdSecCnt * bpb_32.BPB_BytsPerSec + cluster * 4;
+
+	if (FAT_32(cluster) <= 0x0FFFFFEF
+		&& FAT_32(cluster) >= 0x00000002)
+	{
+		empty_val_cluster(FAT_32(cluster));	
+	}
+
+	fseek(file, sector_offset(first_sector_cluster(cluster)), SEEK_SET);
+	fwrite(empty, bpb_32.BPB_BytsPerSec*bpb_32.BPB_SecPerClus, 1, file);
+	fseek(file, offset, SEEK_SET);
+	fwrite(&value, sizeof(unsigned int), 1, file);
+}
+
+int equals(unsigned char name1[], unsigned char name2[])
+{
+	int i;
+	for(i = 0; i < 11; i++)
+	{
+		if(name1[i] != name2[i])
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int unopened(long offset)
+{
+	int i;
+	for (i = 0; i < openedFileNum; i++)
+	{
+		if (openedFile[i] == offset)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+long return_offset(unsigned int cluster, char *name)
+{	
+	int i;
+	char fileName[12];
+	long offset;
+	struct DIR DIR_entry;
+
+	for(;;)
+	{
+		offset = sector_offset(first_sector_cluster(cluster));
+		fseek(file, offset, SEEK_SET);
+
+		long temp = sector_offset(first_sector_cluster(cluster)) + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus;
+		while (temp >= offset)
+		{
+			fread(&DIR_entry, sizeof(struct DIR), 1, file);
+
+			if (DIR_entry.DIR_Name[0] == 0x05)
+			{
+				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
+			}
+
+			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
+			{
+				for (i = 0; i < 11; i++)
+				{
+					fileName[i]=DIR_entry.DIR_Name[i];
+				}
+
+				fileName[11] = '\0';
+
+				if (strcmp(fileName, name) == 0)
+				{
+					return offset;
+				}
+			}
+
+			offset += OFFSET_CONST;
+		}
+		cluster = FAT_32(cluster);
+
+		if (END_OF_CLUSTER < cluster)
+		{
+			break;
+		}
+	}
 }

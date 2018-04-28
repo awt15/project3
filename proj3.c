@@ -527,7 +527,7 @@ int create (char *name)
 int mkdir (char *name)
 {
 	int ec_number = empty_cluster();
-	printf("THIS IS EMPTY CLUSTER: %d\n", empty_cluster_number);
+	printf("THIS IS EMPTY CLUSTER: %d\n", ec_number);
 
 	if(ec_number != 1)
 	{

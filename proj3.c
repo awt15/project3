@@ -557,6 +557,7 @@ int mkdir (char *name)
 int rm (char *name)
 {
 	int i = 0;
+	int j = 0;
 	int temp;
 	long offset;
 	unsigned int nextCluster;
@@ -572,13 +573,14 @@ int rm (char *name)
 		}
 		i++;
 	}
-
+	i = 0;
 	while(i < 8)
 	{
-		if(name[i] != '\0' && name[i] != '.')
+		if(name[j] != '\0' && name[j] != '.')
 		{
-			fileName[i] = name[i];
+			fileName[i] = name[j];
 			i++;
+			j++;
 		}
 		else
 		{

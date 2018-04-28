@@ -144,6 +144,7 @@ unsigned int FAT_32(unsigned int cluster);
 long return_cluster_path(char *string);
 unsigned int return_cluster_dir(unsigned int cluster, char *name);
 long first_sector_cluster(unsigned int cluster);
+long empty_cluster();
 
 int main(int argc, char* argv[])
 {
@@ -291,6 +292,7 @@ int main(int argc, char* argv[])
 	}
 }
 
+//MAIN FUNCTIONS
 int info()
 {
 	struct FSI BPB_FSI_info;
@@ -526,7 +528,9 @@ int create (char *name)
 
 int mkdir (char *name)
 {
-
+	printf("TESTING MKDIR\n");
+	int empty_cluster_number = empty_cluster();
+	printf("THIS IS EMPTY CLUSTER: %d\n", empty_cluster_number);
 }
 
 int rm (char *name)
@@ -561,6 +565,7 @@ void writefile()
 
 }
 
+//UTILITIES FUNCTION
 struct DIR find_file(unsigned int cluster, char *name)
 {
 	int i;
@@ -717,6 +722,7 @@ long first_sector_cluster(unsigned int cluster)
 	return ( (cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
 }
 
+<<<<<<< HEAD
 
 unsigned int empty_cluster(unsigned int cluster)
 {
@@ -732,4 +738,22 @@ unsigned int empty_cluster(unsigned int cluster)
 		printf("Cluster: %d\n", cluster);
 		return empty_cluster(cluster);
 	}
+=======
+long empty_cluster()
+{
+	//root starts at 2
+	int i = 2;
+	while(1)
+	{
+		//empty
+		if(FAT_32(i) == 0)
+		{
+			return i;
+		}
+		else
+		{
+			i++;
+		}
+	}	
+>>>>>>> 329285deed28dffdbedcf5d5ca795ff0c024769f
 }

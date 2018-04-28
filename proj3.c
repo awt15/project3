@@ -136,6 +136,7 @@ void open(char *name, char *mode);
 void close(char *name);
 void readfile();
 void writefile();
+unsigned int empty_cluster(unsigned int cluster);
 
 struct DIR find_file(unsigned int cluster, char *name);
 long sector_offset(long sec);
@@ -535,7 +536,9 @@ int rm (char *name)
 
 int rmdir (char *name)
 {
-
+	unsigned int empty;
+	empty = empty_cluster(current_cluster_number);
+	printf("Empty: %d\n", empty);
 }
 
 void open(char *name, char *mode)
@@ -712,4 +715,21 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 long first_sector_cluster(unsigned int cluster)
 {
 	return ( (cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
+}
+
+
+unsigned int empty_cluster(unsigned int cluster)
+{
+	if (FAT_32(cluster) == 0x00000000)
+	{
+		printf("%d\n", cluster);
+		return cluster;
+	}
+
+	else
+	{
+		cluster += 1;
+		printf("Cluster: %d\n", cluster);
+		return empty_cluster(cluster);
+	}
 }

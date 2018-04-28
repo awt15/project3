@@ -541,7 +541,7 @@ int rm (char *name)
 int rmdir (char *name)
 {
 	unsigned int empty;
-	empty = empty_cluster(current_cluster_number);
+	empty = empty_cluster();
 	printf("Empty: %d\n", empty);
 
 
@@ -784,23 +784,6 @@ long first_sector_cluster(unsigned int cluster)
 	return ( (cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
 }
 
-<<<<<<< HEAD
-
-unsigned int empty_cluster(unsigned int cluster)
-{
-	if (FAT_32(cluster) == 0x00000000)
-	{
-		printf("%d\n", cluster);
-		return cluster;
-	}
-
-	else
-	{
-		cluster += 1;
-		printf("Cluster: %d\n", cluster);
-		return empty_cluster(cluster);
-	}
-=======
 long empty_cluster()
 {
 	//root starts at 2
@@ -817,5 +800,4 @@ long empty_cluster()
 			i++;
 		}
 	}	
->>>>>>> 329285deed28dffdbedcf5d5ca795ff0c024769f
 }

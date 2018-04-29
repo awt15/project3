@@ -295,15 +295,13 @@ int info()
 {
 	struct FSI BPB_FSI_info;
 
-	//offset = bpb_32.BPB_FSI_info * bpb_32.BPB_BytsPerSec;
 	fseek(file, 0x00, SEEK_SET);
 	fread(&BPB_FSI_info, sizeof(struct FSI), 1, file);
-
-	//printf("Number of free Sectors: %d\n", BPB_FSI_info.FSI_Free_Count);
-	//printf("Sectors per Cluster: %d\n", bpb_32.BPB_SecPerClus);
-	//printf("Total Sectors: %d\n", bpb_32.BPB_TotSec32);
+	
+	printf("Sectors per Cluster: %d\n", bpb_32.BPB_SecPerClus);
+	printf("Total Sectors: %d\n", bpb_32.BPB_TotSec32);
 	printf("Bytes per Sector: %d\n", bpb_32.BPB_BytsPerSec);
-	//printf("Sectors per FAT: %d\n", bpb_32.BPB_FATSz32);
+	printf("Sectors per FAT: %d\n", bpb_32.BPB_FATSz32);
 	printf("Number of FATs: %d\n", bpb_32.BPB_NumFATs);
 	printf("Root Cluster: %d\n", bpb_32.BPB_RootClus);
 	printf("First Data Sector: %x\n", FirstDataSector);

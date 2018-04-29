@@ -989,6 +989,70 @@ int rmdir (char *name)
 	}
 	return 0;*/
 
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	int temp;
+	long offset;
+	unsigned int nextCluster;
+	char fileName[12];
+	char empty[32];
+	struct DIR DIR_entry;
+
+	while (name[i] != '\0')
+	{
+		if (name[i] >= 'a' && name[i] <= 'z')
+		{
+			name[i] -= OFFSET_CONST;
+		}
+		fileName[i] = name[i];
+		++i;
+	}
+
+	while (i < 11)
+	{
+		fileName[i] = ' ';
+		++i;
+	}
+
+	fileName[i] = '\0';
+
+	while(i < 32)
+	{
+		empty[i] = '\0';
+		i++;
+	}
+
+	DIR_entry = find_file(current_cluster_number, fileName);
+	offset = return_offset(current_cluster_number, fileName);
+
+	if(DIR_entry.DIR_Attr == 0x10)
+	{
+		/*
+		if(!unopened(offset))
+		{
+			printf("Error: Already Opened\n");
+		}*/
+			nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
+			empty_val_cluster(nextCluster);
+			fseek(file, offset, SEEK_SET);
+			fwrite(&empty, OFFSET_CONST, 1, file);
+			return CLUSTER_END;
+			//return 0xFFFE;	
+	}
+	else if(DIR_entry.DIR_Attr == 0x20)
+	{
+		//
+		printf("Error: This is a File\n");
+		return CLUSTER_END;
+		//return 0xFFFE;
+	}
+	else
+	{
+		printf("Error: Not a Directory\n");
+		return CLUSTER_END;
+		//return 0xFFFE;
+	}
 }
 
 void open(char *name, unsigned short mode)

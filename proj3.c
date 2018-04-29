@@ -669,23 +669,6 @@ printf("New cluster: %d\nFAT_32(CLUS): %x\n", newCluster, FAT_32(newCluster));
 
 int mkdir (char *name)
 {
-	/*
-	int ec_number = empty_cluster();
-	printf("THIS IS EMPTY CLUSTER: %d\n", ec_number);
-
-	if(ec_number != 1)
-	{
-		//SET FAT[i] = 0X0FFFFFF8
-		//SET FAT[current_cluster number = hexcode of 'i'
-
-		//fwrite, set attr to 0x10
-		//dir_clusHI = ec_number/0x100
-		//dir_clusLO = ec_number%0x100
-		//dir_NTRes = 0
-		//dir_FileSize = 0
-		//do .. and .
-	}*/
-
 	int j = 0;
 	int i = 0;
 	int temp;
@@ -761,6 +744,7 @@ int mkdir (char *name)
 			temp++;
 		}
 	}
+
 	else 
 	{
 		while (temp < 11)
@@ -777,8 +761,8 @@ int mkdir (char *name)
 	DIR_entry = find_file(current_cluster_number, fileName);
 	if (DIR_entry.DIR_Name[0] == 0)
 	{
-		offset = first_sector_cluster(current_cluster_number) * bpb_32.BPB_BytsPerSec;
-
+		offset = find_empty_cluster(current_cluster_number);
+printf("TESTING OFFSET: %d\n", offset);
 		i = 0;
 		while (i < 11)
 		{
@@ -790,7 +774,7 @@ int mkdir (char *name)
 		emptyEntry.DIR_Attr = 0x10;
 		emptyEntry.DIR_NTRes = 0;
 		emptyEntry.DIR_FileSize = 0;
-
+				
 		if(BPB_FSI_info.FSI_Nxt_Free == 0xFFFFFFFF)
 		{
 			newCluster = 2;
@@ -799,10 +783,10 @@ int mkdir (char *name)
 		{
 			newCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
 		}
-
+printf("New cluster: %d\nFAT_32(CLUS): %x\n", newCluster, FAT_32(newCluster));
 		for(;;)
 		{
-			if(FAT_32(newCluster) == 0)
+			if(FAT_32(newCluster) == 0 || FAT_32(newCluster) == 0x0FFFFFFF || FAT_32(newCluster) == 0x0FFFFFF8)
 			{
 				emptyEntry.DIR_FstClusHI = (newCluster >> 16);
 				emptyEntry.DIR_FstClusLO = (newCluster & 0xFFFF);

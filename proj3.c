@@ -32,14 +32,6 @@ struct BPB_32
 	unsigned int	BPB_HiddSec;
 	unsigned int	BPB_TotSec32;
 
-	/*
-	unsigned char	BS_DrvNum;
-	unsigned char	BS_Reserved1;
-	unsigned char	BS_BootSig;
-	unsigned int	BS_VolID;
-	unsigned char	BS_VolLab[11];
-	unsigned char	BS_FilSysType[8];
-	*/
 	unsigned int	BPB_FATSz32;
 	unsigned short	BPB_ExtFlags;
 	unsigned short	BPB_FSVer;
@@ -48,17 +40,6 @@ struct BPB_32
 	unsigned char	BS_FilSysType[8];
 	unsigned char   boot_code[436];
 	unsigned short boot_sector_signature;
-
-	//unsigned short	BPB_FSI_info;
-	//unsigned short	BPB_BkBootSec;
-	//unsigned char	BPB_Reserved[12];	
-	//unsigned char	BS_DrvNum;
-	//unsigned char	BS_Reserved1;
-
-	//unsigned char	BS_BootSig;
-	//unsigned int	BS_VolID;
-	//unsigned char	BS_VolLab[11];
-	//unsigned char	BS_FilSysType[8];
 } __attribute__((packed));
 
 struct FSI
@@ -133,8 +114,8 @@ int rmdir(char *name);
 int rm(char *name);
 void open(char *name, char *mode);
 void close(char *name);
-void readfile();
-void writefile();
+void readfile(char *name, int offset, int size);
+void writefile(char *name, int offset, int size, char *string);
 
 struct DIR find_file(unsigned int cluster, char *name);
 
@@ -279,11 +260,18 @@ int main(int argc, char* argv[])
 				}
 				else if (strcmp(operation, "read")==0)
 				{
-					readfile();
+					int offset, size;
+					scanf("%s %d %d", name, offset, size);
+					getchar();
+					readfile(name, offset, size);
 				}
 				else if (strcmp(operation, "write")==0)
 				{
-					writefile();
+					int offset, size;
+					char string[13];
+					scanf("%s %d %d %s", name, offset, size, string);
+					getchar();
+					writefile(name, offset, size, string);
 				}
 				else
 					printf("Incorrect arguments. Enter exit, info, ls, cd, size, create, mkdir, rm, rmdir, open, close, read, write.\n");			
@@ -737,7 +725,7 @@ int rmdir (char *name)
 			if (DIR_entry.DIR_Attr == 0x10)
 			{
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-				fseek(file, offset, SEEK_SET);
+				//fseek(file, offset, SEEK_SET);
 				fwrite(&empty_space, 32, 1, file);
 			}
 			else
@@ -760,12 +748,12 @@ void close(char *name)
 
 }
 
-void readfile()
+void readfile(char *name, int offset, int size)
 {
 
 }
 
-void writefile()
+void writefile(char *name, int offset, int size, char *string)
 {
 
 }

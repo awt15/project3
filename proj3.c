@@ -77,7 +77,6 @@ struct OPEN_FILES
 {
 	int file_first_cluster_number;
 	unsigned short mode;
-	char fname[13];
 }__attribute((packed));
 
 //GLOBAL VARIABLES
@@ -129,6 +128,7 @@ void change_val_cluster(unsigned int value, unsigned int cluster);
 void empty_val_cluster(unsigned int cluster);
 int equals(unsigned char name1[], unsigned char name2[]);
 int opened(unsigned int cluster);
+void close_file(unsigned int cluster);
 unsigned int FAT_32(unsigned int cluster);
 unsigned int return_cluster_dir(unsigned int cluster, char *name);
 long sector_offset(long sec);
@@ -874,7 +874,7 @@ int rm (char *name)
 		cluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
 		if(opened(cluster) == 1)
 		{
-			printf("ERROR: Already Opened\n");
+			printf("ERROR: File is open\n");
 		}
 		else
 		{
@@ -957,7 +957,10 @@ int rmdir (char *name)
 
 void open(char *name, unsigned short mode)
 {
-	int i = 0, j = 0, k = 0, l = 0;
+	int i = 0;
+	int j = 0; 
+	int k = 0; 
+	int l = 0;
 	int temp;
 	long offset;
 	unsigned int nextCluster;
@@ -989,9 +992,7 @@ void open(char *name, unsigned short mode)
 		empty[i] = '\0';
 		i++;
 	}
-
 	DIR_entry = find_file(current_cluster_number, fileName);
-	offset = return_offset(current_cluster_number, fileName);
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		printf("Error: This is a directory\n");
@@ -1009,7 +1010,7 @@ void open(char *name, unsigned short mode)
 		//if(opened(cluster, fileName) == 1)
 		if(opened(cluster) == 1)
 		{
-			printf("Error: File already opened\n");
+			printf("Error: File is already open\n");
 		}
 		else
 		{
@@ -1048,6 +1049,60 @@ void open(char *name, unsigned short mode)
 
 void close(char *name)
 {
+	int i = 0, j = 0, k = 0, l = 0;
+	int temp;
+	long offset;
+	unsigned int nextCluster;
+	char fileName[12];
+	char empty[32];
+	struct DIR DIR_entry;
+	int filemode = -1;				//if the file is READ_ONLY or not
+	unsigned int cluster;
+	while (name[i] != '\0')
+	{
+		if (name[i] >= 'a' && name[i] <= 'z')
+		{
+			name[i] -= OFFSET_CONST;
+		}
+		fileName[i] = name[i];
+		++i;
+	}
+
+	while (i < 11)
+	{
+		fileName[i] = ' ';
+		++i;
+	}
+
+	fileName[i] = '\0';
+
+	while(i < 32)
+	{
+		empty[i] = '\0';
+		i++;
+	}
+
+	DIR_entry = find_file(current_cluster_number, fileName);
+	if(DIR_entry.DIR_Attr == 0x10)
+	{
+		printf("Error: This is a directory\n");
+	}
+	else if((DIR_entry.DIR_Attr == 0x20)||(DIR_entry.DIR_Attr == 0x01))
+	{
+		cluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
+		if(opened(cluster) == 1)
+		{
+			close_file(cluster);
+		}
+		else
+		{
+			printf("Error: File is not open\n");
+		}	
+	}
+	else
+	{
+		printf("Error: Not a File\n");
+	}
 
 }
 
@@ -1326,6 +1381,27 @@ int opened(unsigned int cluster)
 			}
 		}
 	}
+	return 0;
+}
+
+void close_file(unsigned int cluster)
+{
+	int i;
+	int j;
+	for(i = 0; i < open_files_arraysize; i++)
+	{
+		if(open_files_array[i].file_first_cluster_number == cluster)
+		{
+			open_files_array[i].file_first_cluster_number = -1;
+			for(j = i + 1; j < open_files_arraysize; j++)
+			{
+				open_files_array[j-1].file_first_cluster_number = open_files_array[j].file_first_cluster_number;
+				open_files_array[j-1].mode = open_files_array[j].mode;
+			}
+			break;
+		}
+	}
+	open_files_arraysize -= 1;
 	return 0;
 }
 

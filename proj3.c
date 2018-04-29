@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 					getchar();
 					printf("%d\n", size(name));
 				}
-				else if (strcmp(operation, "create") == 0)
+				else if (strcmp(operation, "creat") == 0)
 				{
 					scanf("%s", name);
 					getchar();
@@ -524,6 +524,7 @@ unsigned int size(char* file)
 
 int create (char *name)
 {
+	int j = 0;
 	int i = 0;
 	int temp;
 	char fileName[12];
@@ -545,12 +546,14 @@ int create (char *name)
 	}
 
 	// read in name portion of file into fileName
+	i = 0;
 	while (i < 8) 
 	{
-		if (name[i] != '\0' && name[i] != '.')
+		if (name[j] != '\0' && name[j] != '.')
 		{
 			fileName[i] = name[i];
 			i++;
+			j++;
 		}
 		else
 		{

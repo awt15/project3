@@ -38,7 +38,18 @@ Known Bugs:
 			CREAT, it messes up sometimes. It could be removed from bottom to top, but in
 			random order, it messes up.(We believe the RM function should be fine and 
 			that the problem lies within the CREAT function).
+	MKDIR:
+		-MKDIR is based off of CREAT. It has similar problems as CREAT to where if 
+			you make enough directories. Trying to RMDIR them would cause problems because
+			of the change in cluster numbers.
+	RMDIR:
+		-RMDIR is based off of RM. It has similar problem as RM where if RMDIR some of the
+			directories in a random order would fail the other files. However, trying
+			to remove from bottom to top would be fine.
 Unfinished Portions:
 	READ:
-
+		-We did not get enough time to start on read, but was also confused on how to test
+			with OFFSET and SIZE. 
 	WRITE:
+		-We did not get enough time to start on read, but was also confused on how to test
+			with OFFSET and SIZE. 

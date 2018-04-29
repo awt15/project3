@@ -684,6 +684,69 @@ int rm (char *name)
 
 int rmdir (char *name)
 {
+	unsigned int empty;
+ 	empty = empty_cluster();
+ 	printf("Empty: %d\n", empty);
+
+	int i = 0;
+	int j = 0;
+	char fileName[12];
+	struct DIR DIR_entry;
+	char empty_space[32];
+	while (name[i] != '\0')
+	{
+		if (name[i] >= 'a' && name[i] <= 'z')
+		{
+			name[i] -= OFFSET_CONST;
+		}
+		fileName[i] = name[i];
+		++i;
+	}
+
+	while (i < 11)
+	{
+		fileName[i] = ' ';
+		++i;
+	}
+
+	fileName[i] = '\0';
+	
+	if (strcmp(name, ".") == 0)
+	{
+		//root?		
+	}
+	else if (strcmp(name, "/") == 0)
+	{
+		workingDir[0] = '/';
+		workingDir[1] = '\0';
+		current_cluster_number = bpb_32.BPB_RootClus;
+	}
+	else if (strcmp(name, "..") == 0)
+	{
+		
+	}
+	else
+	{
+		DIR_entry = find_file(current_cluster_number, fileName);
+		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+		{
+			printf("Error: No directory found!\n");
+		}
+		else 
+		{
+			if (DIR_entry.DIR_Attr == 0x10)
+			{
+				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
+				fseek(file, offset, SEEK_SET);
+				fwrite(&empty_space, 32, 1, file);
+			}
+			else
+			{
+				printf("Error: That is not a directory!\n");
+			}
+		}
+	}
+	return 0;
 
 }
 

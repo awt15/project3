@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 					else if(strcmp(mode, "wr") == 0)
 						open(name, WRITE_READ);
 					else
-						printf("Error: Invalid mode\n");
+						printf("ERROR: Invalid mode\n");
 				}
 				else if (strcmp(operation, "close") == 0)
 				{
@@ -914,7 +914,6 @@ int rm (char *name)
 		}
 		else
 		{
-			//nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
 			empty_val_cluster(cluster);	//changed from NextCluster to cluster
 			fseek(file, offset, SEEK_SET);
 			fwrite(&empty, OFFSET_CONST, 1, file);
@@ -925,70 +924,6 @@ int rm (char *name)
 
 int rmdir (char *name)
 {
-	/*unsigned int empty;
- 	empty = empty_cluster();
- 	printf("Empty: %d\n", empty);
-
-	int i = 0;
-	int j = 0;
-	char fileName[12];
-	struct DIR DIR_entry;
-	char empty_space[32];
-	while (name[i] != '\0')
-	{
-		if (name[i] >= 'a' && name[i] <= 'z')
-		{
-			name[i] -= OFFSET_CONST;
-		}
-		fileName[i] = name[i];
-		++i;
-	}
-
-	while (i < 11)
-	{
-		fileName[i] = ' ';
-		++i;
-	}
-
-	fileName[i] = '\0';
-	
-	if (strcmp(name, ".") == 0)
-	{
-		//root?		
-	}
-	else if (strcmp(name, "/") == 0)
-	{
-		workingDir[0] = '/';
-		workingDir[1] = '\0';
-		current_cluster_number = bpb_32.BPB_RootClus;
-	}
-	else if (strcmp(name, "..") == 0)
-	{
-		
-	}
-	else
-	{
-		DIR_entry = find_file(current_cluster_number, fileName);
-		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
-		{
-			printf("Error: No directory found!\n");
-		}
-		else 
-		{
-			if (DIR_entry.DIR_Attr == 0x10)
-			{
-				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-				//fseek(file, offset, SEEK_SET);
-				fwrite(&empty_space, 32, 1, file);
-			}
-			else
-			{
-				printf("Error: That is not a directory!\n");
-			}
-		}
-	}
-	return 0;*/
-
 	int i = 0;
 	int j = 0;
 	int k = 0;
@@ -1028,30 +963,21 @@ int rmdir (char *name)
 
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
-		/*
-		if(!unopened(offset))
-		{
-			printf("Error: Already Opened\n");
-		}*/
-			nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
-			empty_val_cluster(nextCluster);
-			fseek(file, offset, SEEK_SET);
-			fwrite(&empty, OFFSET_CONST, 1, file);
-			return CLUSTER_END;
-			//return 0xFFFE;	
+		nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
+		empty_val_cluster(nextCluster);
+		fseek(file, offset, SEEK_SET);
+		fwrite(&empty, OFFSET_CONST, 1, file);
+		return CLUSTER_END;
 	}
 	else if(DIR_entry.DIR_Attr == 0x20)
 	{
-		//
-		printf("Error: This is a File\n");
+		printf("ERROR: This is a File\n");
 		return CLUSTER_END;
-		//return 0xFFFE;
 	}
 	else
 	{
-		printf("Error: Not a Directory\n");
+		printf("ERROR: Not a Directory\n");
 		return CLUSTER_END;
-		//return 0xFFFE;
 	}
 }
 
@@ -1082,7 +1008,7 @@ void open(char *name, unsigned short mode)
 	DIR_entry = find_file(current_cluster_number, fileName);
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
-		printf("Error: This is a directory\n");
+		printf("ERROR: This is a directory\n");
 	}
 	else if((DIR_entry.DIR_Attr == 0x20)||(DIR_entry.DIR_Attr == 0x01))
 	{
@@ -1094,10 +1020,9 @@ void open(char *name, unsigned short mode)
 			filemode = 0;
 		}
 		cluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
-		//if(opened(cluster, fileName) == 1)
 		if(opened(cluster) == 1)
 		{
-			printf("Error: File is already open\n");
+			printf("ERROR: File is already open\n");
 		}
 		else
 		{
@@ -1105,31 +1030,23 @@ void open(char *name, unsigned short mode)
 			{
 				open_files_array[open_files_arraysize].file_first_cluster_number = cluster;
 				open_files_array[open_files_arraysize].mode = mode;
-				/*for(i = 0; i < 12; i++)
-				{
-					open_files_array[open_files_arraysize].fname[i] = fileName[i];
-				}*/
 				open_files_arraysize += 1;
 			}
 			else if(filemode != READ_ONLY)
 			{
 				open_files_array[open_files_arraysize].file_first_cluster_number = cluster;
 				open_files_array[open_files_arraysize].mode = mode;
-				/*for(i = 0; i < 12; i++)
-				{
-					open_files_array[open_files_arraysize].fname[i] = fileName[i];
-				}*/
 				open_files_arraysize += 1;
 			}
 			else
 			{
-				printf("Error: File is READ ONLY and cannot be written to\n");
+				printf("ERROR: File is READ ONLY and cannot be written to\n");
 			}
 		}	
 	}
 	else
 	{
-		printf("Error: Not a File\n");
+		printf("ERROR: Not a File\n");
 	}
 
 }
@@ -1160,7 +1077,7 @@ void close(char *name)
 	DIR_entry = find_file(current_cluster_number, fileName);
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
-		printf("Error: This is a directory\n");
+		printf("ERROR: This is a directory\n");
 	}
 	else if((DIR_entry.DIR_Attr == 0x20)||(DIR_entry.DIR_Attr == 0x01))
 	{
@@ -1171,12 +1088,12 @@ void close(char *name)
 		}
 		else
 		{
-			printf("Error: File is not open\n");
+			printf("ERROR: File is not open\n");
 		}	
 	}
 	else
 	{
-		printf("Error: Not a File\n");
+		printf("ERROR: Not a File\n");
 	}
 
 }
@@ -1190,19 +1107,19 @@ void readfile(char *name, int offset, int size)
 
 	if(opened(offset))
 	{
-		printf("Error: File is not opened.\n");
+		printf("ERROR: File is not opened.\n");
 	}
 	else if(strcmp(dir.DIR_Name, name) != 0)
 	{
-		printf("Error: File cannot be found.\n");
+		printf("ERROR: File cannot be found.\n");
 	}
 	else if(dir.DIR_Attr == 0x10)
 	{
-		printf("Error: File is a directory.\n");
+		printf("ERROR: File is a directory.\n");
 	}
 	else if(offset > file_size)
 	{
-		printf("Error: OFFSET is larger than the size of the file.\n");
+		printf("ERROR: OFFSET is larger than the size of the file.\n");
 	}
 	else
 	{
@@ -1232,7 +1149,6 @@ struct DIR find_file(unsigned int cluster, char *name)
 		long temp = offset + bpb_32.BPB_BytsPerSec;
 		while (temp > offset)
 		{
-			//long temp = offset + bpb_32.BPB_BytsPerSec;
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 
 			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
@@ -1309,7 +1225,6 @@ long return_cluster_path(char *string){
 			}		
 		}
 
-		//printf("testing name: %s\n", name);
 		if (strcmp(name, "") != 0)
 		{
 			//printf("testing name loop: %s\n", name);

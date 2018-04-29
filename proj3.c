@@ -814,6 +814,42 @@ int mkdir (char *name)
 		fseek(file, offset, SEEK_SET);
 		fwrite(&emptyEntry, sizeof(struct DIR), 1, file);
 		fflush(file);
+		
+		//fill in directory
+		offset = find_empty_cluster(newCluster);
+		emptyEntry.DIR_Name[0] = '.';
+		i = 1;
+		while(i < 12)
+		{
+			emptyEntry.DIR_Name[i] = ' ';
+			i++;
+		}
+		emptyEntry.DIR_Attr = 0x10;
+		emptyEntry.DIR_NTRes = 0;
+		emptyEntry.DIR_FileSize = 0;
+		emptyEntry.DIR_FstClusHI = (newCluster >> 16);
+		emptyEntry.DIR_FstClusLO = (newCluster & 0xFFFF);
+		fseek(file, offset, SEEK_SET);
+		fwrite(&emptyEntry, sizeof(struct DIR), 1, file);
+
+		offset = find_empty_cluster(newCluster);
+		emptyEntry.DIR_Name[0] = '.';
+		emptyEntry.DIR_Name[1] = '.';
+
+		i = 2;
+		while(i < 12)
+		{
+			emptyEntry.DIR_Name[i] = ' ';
+			i++;
+		}
+		emptyEntry.DIR_Attr = 0x10;
+		emptyEntry.DIR_NTRes = 0;
+		emptyEntry.DIR_FileSize = 0;
+		emptyEntry.DIR_FstClusHI = (newCluster >> 16);
+		emptyEntry.DIR_FstClusLO = (newCluster & 0xFFFF);
+		fseek(file, offset, SEEK_SET);
+		fwrite(&emptyEntry, sizeof(struct DIR), 1, file);
+		
 		return 0xFFF0;
 	}
 	else

@@ -20,9 +20,8 @@ Makefile Instructions:
 
 Known Bugs:
 	Whole Project:
-		-Please enter correct amount of arguments when testing the function.
-			This is because we did not have time to implement error checking
-			if user had inputed incorrect amount of arguments.
+		-Not sure if error checking if fully working but most of the functions
+			should be checking for correct amount of arguments.
 	CD:
 		-"cd .." only works whenever the parent directory is the root.
 			If the parent directory is not the root then "cd .." changes our

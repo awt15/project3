@@ -180,9 +180,6 @@ int main(int argc, char* argv[])
 				printf("%s:%s>", fatImgName, workingDir);
 				scanf("%s", operation);
 
-				//FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
-				//FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
-
 				if (strcmp(operation, "exit") == 0)
 				{
 					fclose(file);
@@ -428,11 +425,11 @@ int cd(char *name)
 			{
 				workingDir[i] = '\0';
 			}
-			printf("TESTING CLUSTER NUMBER BEFORE %d\n", current_cluster_number);
-			printf("TESTING WORKING DIR: %s\n", workingDir);
+			//printf("TESTING CLUSTER NUMBER BEFORE %d\n", current_cluster_number);
+			//printf("TESTING WORKING DIR: %s\n", workingDir);
 			current_cluster_number = return_cluster_path(workingDir);
 			//current_cluster_number = parentCluster;
-			printf("TESTING CLUSTER NUMBER AFTER %d\n", current_cluster_number);
+			//printf("TESTING CLUSTER NUMBER AFTER %d\n", current_cluster_number);
 		}
 	}
 	else
@@ -615,7 +612,6 @@ int create (char *name)
 	if (DIR_entry.DIR_Name[0] == 0)
 	{
 		offset = find_empty_cluster(current_cluster_number);
-printf("TESTING OFFSET: %d\n", offset);
 		i = 0;
 		while (i < 11)
 		{
@@ -636,7 +632,6 @@ printf("TESTING OFFSET: %d\n", offset);
 		{
 			newCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
 		}
-printf("New cluster: %d\nFAT_32(CLUS): %x\n", newCluster, FAT_32(newCluster));
 		for(;;)
 		{
 			if(FAT_32(newCluster) == 0 || FAT_32(newCluster) == 0x0FFFFFFF || FAT_32(newCluster) == 0x0FFFFFF8)
@@ -762,7 +757,6 @@ int mkdir (char *name)
 	if (DIR_entry.DIR_Name[0] == 0)
 	{
 		offset = find_empty_cluster(current_cluster_number);
-printf("TESTING OFFSET: %d\n", offset);
 		i = 0;
 		while (i < 11)
 		{
@@ -783,7 +777,6 @@ printf("TESTING OFFSET: %d\n", offset);
 		{
 			newCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
 		}
-printf("New cluster: %d\nFAT_32(CLUS): %x\n", newCluster, FAT_32(newCluster));
 		for(;;)
 		{
 			if(FAT_32(newCluster) == 0 || FAT_32(newCluster) == 0x0FFFFFFF || FAT_32(newCluster) == 0x0FFFFFF8)
@@ -1095,13 +1088,13 @@ long return_cluster_path(char *string){
 			}		
 		}
 
-		printf("testing name: %s\n", name);
+		//printf("testing name: %s\n", name);
 		if (strcmp(name, "") != 0)
 		{
-			printf("testing name loop: %s\n", name);
-			printf("cluster loop: %d\n", cluster);
+			//printf("testing name loop: %s\n", name);
+			//printf("cluster loop: %d\n", cluster);
 			cluster = return_cluster_dir(cluster, name);
-			printf("cluster loop: %d\n", cluster);
+			//printf("cluster loop: %d\n", cluster);
 		}
 		else
 			break;
@@ -1299,18 +1292,15 @@ long find_empty_cluster(unsigned int cluster){
 		offset = sector_offset(first_sector_cluster(cluster));
 		long temp = offset + bpb_32.BPB_BytsPerSec;
 		fseek(file, offset, SEEK_SET);
-		printf("OFFSET FUNCTION: %d\nTEMP: %d\n", offset, temp);
 
 		// temp variable to compare with offset
 		while ( temp > offset )
 		{
-			printf("temp: %d\noffset: %d\n", temp, offset);
 			if(offset > temp)
 				break;
 
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 
-			printf("DIRNAME: %s\nATTR: %d\n", DIR_entry.DIR_Name);
 			if ((DIR_entry.DIR_Name[0] != ENTRY_EMPTY) && (DIR_entry.DIR_Name[0] != ENTRY_LAST))
 			{
 				offset += OFFSET_CONST;

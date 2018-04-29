@@ -39,8 +39,6 @@ Known Bugs:
 			CREAT, it messes up sometimes. It could be removed from bottom to top, but in
 			random order, it messes up.(We believe the RM function should be fine and 
 			that the problem lies within the CREAT function).
-		-RM function will go into an infinite loop if trying to remove a file that does
-			not exist.
 Unfinished Portions:
 	READ:
 

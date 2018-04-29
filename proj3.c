@@ -842,7 +842,32 @@ void close(char *name)
 
 void readfile(char *name, int offset, int size)
 {
+/*
+	struct DIR dir;
+	int file_size = sizeof(name);
+	dir = find_file(current_cluster_number, name);
 
+	if(unopened(offset))
+	{
+		printf("Error: File is not opened.\n");
+	}
+	else if(strcmp(dir.DIR_Name, name) != 0)
+	{
+		printf("Error: File cannot be found.\n");
+	}
+	else if(dir.DIR_Attr == 0x10)
+	{
+		printf("Error: File is a directory.\n");
+	}
+	else if(offset > file_size)
+	{
+		printf("Error: OFFSET is larger than the size of the file.\n");
+	}
+	else
+	{
+
+	}
+*/
 }
 
 void writefile(char *name, int offset, int size, char *string)

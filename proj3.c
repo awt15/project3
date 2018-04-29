@@ -994,14 +994,7 @@ int rmdir (char *name)
 void open(char *name, unsigned short mode)
 {
 	int i = 0;
-	int j = 0; 
-	int k = 0; 
-	int l = 0;
-	int temp;
-	long offset;
-	unsigned int nextCluster;
 	char fileName[12];
-	char empty[32];
 	struct DIR DIR_entry;
 	int filemode = -1;				//if the file is READ_ONLY or not
 	unsigned int cluster;
@@ -1022,12 +1015,6 @@ void open(char *name, unsigned short mode)
 	}
 
 	fileName[i] = '\0';
-
-	while(i < 32)
-	{
-		empty[i] = '\0';
-		i++;
-	}
 	DIR_entry = find_file(current_cluster_number, fileName);
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
@@ -1085,12 +1072,8 @@ void open(char *name, unsigned short mode)
 
 void close(char *name)
 {
-	int i = 0, j = 0, k = 0, l = 0;
-	int temp;
-	long offset;
-	unsigned int nextCluster;
+	int i = 0;
 	char fileName[12];
-	char empty[32];
 	struct DIR DIR_entry;
 	int filemode = -1;				//if the file is READ_ONLY or not
 	unsigned int cluster;
@@ -1109,15 +1092,7 @@ void close(char *name)
 		fileName[i] = ' ';
 		++i;
 	}
-
 	fileName[i] = '\0';
-
-	while(i < 32)
-	{
-		empty[i] = '\0';
-		i++;
-	}
-
 	DIR_entry = find_file(current_cluster_number, fileName);
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
@@ -1410,11 +1385,8 @@ int opened(unsigned int cluster)
 	{
 		for(i = 0; i < open_files_arraysize; i++)
 		{
-			
 			if(open_files_array[i].file_first_cluster_number == cluster)
-			{
 				return 1;
-			}
 		}
 	}
 	return 0;
@@ -1438,7 +1410,6 @@ void close_file(unsigned int cluster)
 		}
 	}
 	open_files_arraysize -= 1;
-	return 0;
 }
 
 long return_offset(unsigned int cluster, char *name)

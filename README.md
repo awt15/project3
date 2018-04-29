@@ -36,8 +36,9 @@ Known Bugs:
 			different cluster once the current one is full, it'll give us errors.
 	RM:
 		-RM can remove the files regularly, however, removing the files created by
-			CREAT, it messes up sometimes. (We believe the RM function should be fine
-			and that the problem lies within the CREAT function).
+			CREAT, it messes up sometimes. It could be removed from bottom to top, but in
+			random order, it messes up.(We believe the RM function should be fine and 
+			that the problem lies within the CREAT function).
 		-RM function will go into an infinite loop if trying to remove a file that does
 			not exist.
 Unfinished Portions:

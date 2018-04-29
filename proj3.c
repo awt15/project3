@@ -218,7 +218,11 @@ int main(int argc, char* argv[])
 				{
 					scanf("%s", name);
 					getchar();
-					printf("%d\n", size(name));
+					int s = size(name);
+					if(s == -1)
+						continue;
+					else
+						printf("%d\n", size(name));
 				}
 				else if (strcmp(operation, "creat") == 0)
 				{
@@ -358,7 +362,8 @@ int ls(int current_cluster_number)
 //LS DIRECTORY
 int ls_name(char *name)
 {
-	cd(name);
+	if(cd(name) == -1)
+		return 0;
 	ls(current_cluster_number);
 	cd("..");
 	return 0;
@@ -402,12 +407,11 @@ int cd(char *name)
 	{
 		if (strcmp(workingDir, "/") == 0)
 		{
-			printf("Error! It's in the root directory.\n");
+			printf("ERROR: It's in the root directory.\n");
 			return -1;
 		}
 		else
 		{	
-		printf("TESTING WE IN HERE 2\n");
 			while (workingDir[i] != '\0')
 			{
 				++i;
@@ -437,7 +441,8 @@ int cd(char *name)
 		DIR_entry = find_file(current_cluster_number, fileName);
 		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
 		{
-			printf("Error: No directory found!\n");
+			printf("ERROR: No directory found!\n");
+			return -1;
 		}
 		else 
 		{
@@ -467,7 +472,8 @@ int cd(char *name)
 			}
 			else
 			{
-				printf("Error: That is not a directory!\n");
+				printf("ERROR: That is not a directory!\n");
+				return -1;
 			}
 		}
 	}
@@ -507,7 +513,8 @@ unsigned int size(char* file)
 		DIR_entry = find_file(current_cluster_number, fileName);
 		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
 		{
-			printf("Error: FILENAME was not found!\n");
+			printf("ERROR: FILENAME was not found!\n");
+			return -1;
 		}
 		else 
 		{
@@ -657,7 +664,7 @@ int create (char *name)
 	}
 	else
 	{
-		printf("Error: Entry already exists\n");
+		printf("ERROR: Entry already exists\n");
 		return 0xFFFE;
 	}
 }
@@ -802,7 +809,7 @@ int mkdir (char *name)
 	}
 	else
 	{
-		printf("Error: Entry already exists\n");
+		printf("ERROR: Entry already exists\n");
 		return 0xFFFE;
 	}
 }
@@ -845,18 +852,18 @@ int rm (char *name)
 
 	DIR_entry = find_file(current_cluster_number, fileName);
 	offset = return_offset(current_cluster_number, fileName);
+	if(offset == -1)	return 0;
 
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
-		printf("Error: This is a directory\n");
+		printf("ERROR: This is a directory\n");
 		return CLUSTER_END;
-		//return 0xFFFE;
 	}
 	else if(DIR_entry.DIR_Attr == 0x20)
 	{
 		if(!unopened(offset))
 		{
-			printf("Error: Already Opened\n");
+			printf("ERROR: Already Opened\n");
 		}
 		else
 		{
@@ -865,21 +872,8 @@ int rm (char *name)
 			fseek(file, offset, SEEK_SET);
 			fwrite(&empty, OFFSET_CONST, 1, file);
 			return CLUSTER_END;
-			//return 0xFFFE;	
 		}
 	}
-	else
-	{
-		printf("Error: Not a File\n");
-		return CLUSTER_END;
-		//return 0xFFFE;
-	}
-/*	else
-	{
-		printf("Error: No such Entry\n");
-		return 0xFFFE;
-	}
-*/
 }
 
 int rmdir (char *name)
@@ -1252,6 +1246,11 @@ long return_offset(unsigned int cluster, char *name)
 			if (DIR_entry.DIR_Name[0] == 0x05)
 			{
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
+			}
+			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			{
+				printf("ERROR: No file found.\n");
+				return -1;
 			}
 
 			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)

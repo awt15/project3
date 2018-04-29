@@ -32,14 +32,6 @@ struct BPB_32
 	unsigned int	BPB_HiddSec;
 	unsigned int	BPB_TotSec32;
 
-	/*
-	unsigned char	BS_DrvNum;
-	unsigned char	BS_Reserved1;
-	unsigned char	BS_BootSig;
-	unsigned int	BS_VolID;
-	unsigned char	BS_VolLab[11];
-	unsigned char	BS_FilSysType[8];
-	*/
 	unsigned int	BPB_FATSz32;
 	unsigned short	BPB_ExtFlags;
 	unsigned short	BPB_FSVer;
@@ -48,17 +40,6 @@ struct BPB_32
 	unsigned char	BS_FilSysType[8];
 	unsigned char   boot_code[436];
 	unsigned short boot_sector_signature;
-
-	//unsigned short	BPB_FSI_info;
-	//unsigned short	BPB_BkBootSec;
-	//unsigned char	BPB_Reserved[12];	
-	//unsigned char	BS_DrvNum;
-	//unsigned char	BS_Reserved1;
-
-	//unsigned char	BS_BootSig;
-	//unsigned int	BS_VolID;
-	//unsigned char	BS_VolLab[11];
-	//unsigned char	BS_FilSysType[8];
 } __attribute__((packed));
 
 struct FSI
@@ -133,8 +114,8 @@ int rmdir(char *name);
 int rm(char *name);
 void open(char *name, char *mode);
 void close(char *name);
-void readfile();
-void writefile();
+void readfile(char *name, int offset, int size);
+void writefile(char *name, int offset, int size, char *string);
 
 struct DIR find_file(unsigned int cluster, char *name);
 
@@ -149,6 +130,7 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name);
 
 long sector_offset(long sec);
 long first_sector_cluster(unsigned int cluster);
+long find_empty_cluster(unsigned int cluster);
 long return_offset(unsigned int cluster, char *name);
 long return_cluster_path(char *string);
 
@@ -279,11 +261,18 @@ int main(int argc, char* argv[])
 				}
 				else if (strcmp(operation, "read")==0)
 				{
-					readfile();
+					int offset, size;
+					scanf("%s %d %d", name, offset, size);
+					getchar();
+					readfile(name, offset, size);
 				}
 				else if (strcmp(operation, "write")==0)
 				{
-					writefile();
+					int offset, size;
+					char string[13];
+					scanf("%s %d %d %s", name, offset, size, string);
+					getchar();
+					writefile(name, offset, size, string);
 				}
 				else
 					printf("Incorrect arguments. Enter exit, info, ls, cd, size, create, mkdir, rm, rmdir, open, close, read, write.\n");			
@@ -537,7 +526,146 @@ unsigned int size(char* file)
 
 int create (char *name)
 {
+	int i = 0;
+	int temp;
+	char fileName[12];
+	unsigned int newCluster;
+	long offset;
+	struct DIR emptyEntry, DIR_entry;
+	struct FSI BPB_FSI_info;
 
+
+	// loops set up the file name by accessing indices in name 
+	// prep file name before creating it
+	while (name[i] != '\0') 
+	{
+		if (name[i] >= 'a' && name[i] <= 'z')
+		{
+			name[i] -= OFFSET_CONST;
+		}
+		i++;
+	}
+
+	// read in name portion of file into fileName
+	while (i < 8) 
+	{
+		if (name[i] != '\0' && name[i] != '.')
+		{
+			fileName[i] = name[i];
+			i++;
+		}
+		else
+		{
+			temp = i;
+			break;
+		}
+	}
+
+	// fill up the rest of fileName with spaces
+	for (i = temp; i < 8; i++)
+	{
+		fileName[i] = ' ';
+	}
+
+	// accounting for extensions
+	if (name[temp++] == '.') 
+	{
+		i = 8;
+
+		while (i < 11)
+		{
+			if (name[temp] != '\0')
+			{
+				fileName[i] = name[temp++];
+			}
+			else
+			{
+				temp = i;
+				break;
+			}
+
+			if (i == 10)
+			{
+				temp = i++;
+			}
+
+			i++;
+		}
+
+		while (temp < 11)
+		{
+			fileName[temp] = ' ';
+			temp++;
+		}
+	}
+
+	else 
+	{
+		while (temp < 11)
+		{
+			fileName[temp] = ' ';
+			temp++;
+		}
+	}
+
+	// set the end of fileName to null character
+	fileName[11] = '\0';
+	
+	// get the directory entry
+	DIR_entry = find_file(current_cluster_number, fileName);
+	if (DIR_entry.DIR_Name[0] == 0)
+	{
+		offset = find_empty_cluster(current_cluster_number);
+
+		i = 0;
+		while (i < 11)
+		{
+			emptyEntry.DIR_Name[i] = fileName[i];
+			++i;
+		}
+
+		// set up the directory 
+		emptyEntry.DIR_Attr = 0x20;
+		emptyEntry.DIR_NTRes = 0;
+		emptyEntry.DIR_FileSize = 0;
+				
+		if(BPB_FSI_info.FSI_Nxt_Free == 0xFFFFFFFF)
+		{
+			newCluster = 2;
+		}
+		else
+		{
+			newCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
+		}
+
+		for(;;)
+		{
+			if(FAT_32(newCluster) == 0)
+			{
+				emptyEntry.DIR_FstClusHI = (newCluster >> 16);
+				emptyEntry.DIR_FstClusLO = (newCluster & 0xFFFF);
+				change_val_cluster(0x0FFFFFF8, newCluster);
+				BPB_FSI_info.FSI_Nxt_Free = newCluster;
+
+				fflush(file);
+				break;
+			}
+			if(newCluster == 0xFFFFFFFF)
+			{
+				newCluster = 1;
+			}
+		}
+
+		fseek(file, offset, SEEK_SET);
+		fwrite(&emptyEntry, sizeof(struct DIR), 1, file);
+		fflush(file);
+		return 0xFFF0;
+	}
+	else
+	{
+		printf("Error: Entry already exists\n");
+		return 0xFFFE;
+	}
 }
 
 int mkdir (char *name)
@@ -689,7 +817,7 @@ int rmdir (char *name)
 			if (DIR_entry.DIR_Attr == 0x10)
 			{
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
-				fseek(file, offset, SEEK_SET);
+				//fseek(file, offset, SEEK_SET);
 				fwrite(&empty_space, 32, 1, file);
 			}
 			else
@@ -712,12 +840,12 @@ void close(char *name)
 
 }
 
-void readfile()
+void readfile(char *name, int offset, int size)
 {
 
 }
 
-void writefile()
+void writefile(char *name, int offset, int size, char *string)
 {
 
 }
@@ -1005,4 +1133,63 @@ long return_offset(unsigned int cluster, char *name)
 			break;
 		}
 	}
+}
+
+long find_empty_cluster(unsigned int cluster){
+	int i;
+	unsigned int nextCluster;
+	long offset;
+	struct FSI BPB_FSI_info;
+	struct DIR DIR_entry;
+
+	// begin loop
+	for(;;)
+	{
+		offset = sector_offset(first_sector_cluster(cluster));
+		fseek(file, offset, SEEK_SET);
+
+		// temp variable to compare with offset
+		long temp = sector_offset(first_sector_cluster(cluster)) + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus;
+		while ( temp >= offset )
+		{
+			fread(&DIR_entry, sizeof(struct DIR), 1, file);
+
+			if ((DIR_entry.DIR_Name[0] != ENTRY_EMPTY) && (DIR_entry.DIR_Name[0] != ENTRY_LAST))
+				break;
+			else
+				return offset;
+
+			offset += OFFSET_CONST;
+		}
+
+		if (END_OF_CLUSTER <= FAT_32(cluster))
+		{
+			
+			if (BPB_FSI_info.FSI_Nxt_Free != CLUSTER_END)
+			{	
+				nextCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
+			}	
+			else
+			{
+				nextCluster = 0x00000002;
+			}
+
+			for ( ; ; nextCluster++)
+			{
+				if (FAT_32(nextCluster) == 0x00000000)
+				{
+					change_val_cluster(nextCluster, cluster);
+					change_val_cluster(END_OF_CLUSTER, nextCluster);
+					BPB_FSI_info.FSI_Nxt_Free = cluster;
+					fflush(file);
+					break;
+				}
+				if (nextCluster == CLUSTER_END)
+					nextCluster = 0x00000001;
+			}
+			cluster = nextCluster;
+		}
+		else
+			cluster = FAT_32(cluster);
+	}	
 }

@@ -874,11 +874,7 @@ int rm (char *name)
 		cluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
 		if(opened(cluster) == 1)
 		{
-<<<<<<< HEAD
-			printf("Error: File is open\n");
-=======
 			printf("ERROR: Already Opened\n");
->>>>>>> c0c909027fd0ba175bfb6d1b65e2e146e5f477c4
 		}
 		else
 		{
@@ -886,20 +882,9 @@ int rm (char *name)
 			empty_val_cluster(cluster);	//changed from NextCluster to cluster
 			fseek(file, offset, SEEK_SET);
 			fwrite(&empty, OFFSET_CONST, 1, file);
-<<<<<<< HEAD
 			return CLUSTER_END;	
 		}
 	}
-	else
-	{
-		printf("Error: Not a File\n");
-		return CLUSTER_END;
-	}
-=======
-			return CLUSTER_END;
-		}
-	}
->>>>>>> c0c909027fd0ba175bfb6d1b65e2e146e5f477c4
 }
 
 int rmdir (char *name)

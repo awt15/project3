@@ -18,6 +18,7 @@
 #define READ_WRITE 3
 #define WRITE_READ 4
 
+//STRUCTURES
 struct BPB_32
 {
 	unsigned char	BS_jmpBoot[3];
@@ -79,19 +80,16 @@ struct OPEN_FILES
 	unsigned short mode;
 }__attribute((packed));
 
-//GLOBAL VARIABLES
+//MAIN GLOBALS: STRUCTS/FILE
 extern struct FSI BPB_FSI_info;
 extern struct BPB_32 bpb_32;
 extern struct DIR directory;
-//extern long openedFile[100];
-//extern int openedFileNum;
 extern FILE *file;
 
 //MORE GLOBALS
 char *fatImgName;
 char *parentDir;
 char *workingDir;
-//int openedFileNum;
 int readFileNum;
 int writeFileNum;
 unsigned int parentCluster;
@@ -107,7 +105,7 @@ unsigned int * FAT;
 struct OPEN_FILES open_files_array[100];
 int open_files_arraysize = 0;
 
-//FUNCTIONS
+//MAIN FUNCTIONS
 int info();
 int ls(int cluster_number);
 int ls_name(char *name);
@@ -123,6 +121,7 @@ void close(char *name);
 void readfile(char *name, int offset, int size);
 void writefile(char *name, int offset, int size, char *string);
 
+//SUB-FUNCTIONS
 struct DIR find_file(unsigned int cluster, char *name);
 void change_val_cluster(unsigned int value, unsigned int cluster);
 void empty_val_cluster(unsigned int cluster);
@@ -148,7 +147,6 @@ int main(int argc, char* argv[])
 
 	writeFileNum = 0;
 	readFileNum = 0;
-	//openedFileNum = 0;
 	workingDir = (char*)malloc(200*sizeof(char));
 	parentDir = (char*)malloc(200*sizeof(char));
 
@@ -177,6 +175,7 @@ int main(int argc, char* argv[])
 			FirstDataSector = bpb_32.BPB_RsvdSecCnt + (bpb_32.BPB_NumFATs*bpb_32.BPB_FATSz32);
 			FirstSectorofCluster = ((bpb_32.BPB_RootClus - 2)*bpb_32.BPB_SecPerClus) + FirstDataSector;
 
+			//LOOP for User
 			for(;;)
 			{
 				printf("%s:%s>", fatImgName, workingDir);
@@ -323,6 +322,7 @@ int info()
 	printf("FAT: %x\n", FAT);
 	return 0;
 }
+
 //EMPTY LS
 int ls(int current_cluster_number)
 {				
@@ -337,7 +337,6 @@ int ls(int current_cluster_number)
 	while (1){
 		offset = first_sector_cluster(current_cluster_number) * bpb_32.BPB_BytsPerSec;
 		offset_total = offset + bpb_32.BPB_BytsPerSec;
-		//printf("OFFSET IS %d\n", offset);
 		fseek(file, offset, SEEK_SET);
 		while (offset < offset_total)
 		{
@@ -374,6 +373,7 @@ int ls(int current_cluster_number)
 		}	
 	}
 }
+
 //LS DIRECTORY
 int ls_name(char *name)
 {
@@ -390,6 +390,8 @@ int cd(char *name)
 	int j = 0;
 	char fileName[12];
 	struct DIR DIR_entry;
+	
+	//Getting Directory Name
 	while (name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
@@ -408,6 +410,7 @@ int cd(char *name)
 
 	fileName[i] = '\0';
 	
+	//Directory Name Possibilities
 	if (strcmp(name, ".") == 0)
 	{
 		//root?		
@@ -501,6 +504,8 @@ unsigned int size(char* file)
 	int j = 0;
 	char fileName[12];
 	struct DIR DIR_entry;
+	
+	//Getting File Name
 	while (file[i] != '\0')
 	{
 		if (file[i] >= 'a' && file[i] <= 'z')
@@ -519,6 +524,7 @@ unsigned int size(char* file)
 
 	fileName[i] = '\0';
 	
+	//File Name Possibilities
 	if (strcmp(file, ".") == 0)
 	{
 		//root?		
@@ -645,7 +651,8 @@ int create (char *name)
 		emptyEntry.DIR_Attr = 0x20;
 		emptyEntry.DIR_NTRes = 0;
 		emptyEntry.DIR_FileSize = 0;
-				
+
+		//Get the right cluster number
 		if(BPB_FSI_info.FSI_Nxt_Free == 0xFFFFFFFF)
 		{
 			newCluster = 2;
@@ -654,6 +661,8 @@ int create (char *name)
 		{
 			newCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
 		}
+		
+		//Testing cluster number
 		for(;;)
 		{
 			if(FAT_32(newCluster) == 0 || FAT_32(newCluster) == 0x0FFFFFFF || FAT_32(newCluster) == 0x0FFFFFF8)
@@ -790,7 +799,8 @@ int mkdir (char *name)
 		emptyEntry.DIR_Attr = 0x10;
 		emptyEntry.DIR_NTRes = 0;
 		emptyEntry.DIR_FileSize = 0;
-				
+			
+		//Getting Right Cluster number
 		if(BPB_FSI_info.FSI_Nxt_Free == 0xFFFFFFFF)
 		{
 			newCluster = 2;
@@ -799,6 +809,8 @@ int mkdir (char *name)
 		{
 			newCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
 		}
+		
+		//Testing cluster number
 		for(;;)
 		{
 			if(FAT_32(newCluster) == 0 || FAT_32(newCluster) == 0x0FFFFFFF || FAT_32(newCluster) == 0x0FFFFFF8)
@@ -821,7 +833,7 @@ int mkdir (char *name)
 		fwrite(&emptyEntry, sizeof(struct DIR), 1, file);
 		fflush(file);
 		
-		//fill in directory
+		//fill in directory with "." ".."
 		offset = find_empty_cluster(newCluster);
 		emptyEntry.DIR_Name[0] = '.';
 		i = 1;
@@ -878,6 +890,7 @@ int rm (char *name)
 	struct DIR DIR_entry;
 	unsigned int cluster;
 
+	//Getting File Name
 	while (name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
@@ -902,10 +915,12 @@ int rm (char *name)
 		i++;
 	}
 
+	//Getting correct offset of file
 	DIR_entry = find_file(current_cluster_number, fileName);
 	offset = return_offset(current_cluster_number, fileName);
 	if(offset == -1)	return 0;
 
+	//Testing file and removing if it is unopened
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		printf("ERROR: This is a directory\n");
@@ -940,6 +955,7 @@ int rmdir (char *name)
 	char empty[32];
 	struct DIR DIR_entry;
 
+	//Getting Directory Name
 	while (name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
@@ -964,9 +980,11 @@ int rmdir (char *name)
 		i++;
 	}
 
+	//Getting right offset for directory
 	DIR_entry = find_file(current_cluster_number, fileName);
 	offset = return_offset(current_cluster_number, fileName);
 
+	//Testing directory and removing if it is
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		nextCluster = (DIR_entry.DIR_FstClusHI << 16 | DIR_entry.DIR_FstClusLO);
@@ -994,6 +1012,8 @@ void open(char *name, unsigned short mode)
 	struct DIR DIR_entry;
 	int filemode = -1;				//if the file is READ_ONLY or not
 	unsigned int cluster;
+	
+	//Getting File Name
 	while (name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
@@ -1012,6 +1032,8 @@ void open(char *name, unsigned short mode)
 
 	fileName[i] = '\0';
 	DIR_entry = find_file(current_cluster_number, fileName);
+	
+	//Making sure file is not adirectory
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		printf("ERROR: This is a directory\n");
@@ -1064,6 +1086,8 @@ void close(char *name)
 	struct DIR DIR_entry;
 	int filemode = -1;				//if the file is READ_ONLY or not
 	unsigned int cluster;
+	
+	//Getting file name
 	while (name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
@@ -1081,7 +1105,12 @@ void close(char *name)
 	}
 	fileName[i] = '\0';
 	DIR_entry = find_file(current_cluster_number, fileName);
+<<<<<<< HEAD
 
+=======
+	
+	//Making sure file is not adirectory
+>>>>>>> acf4d1419b1f82d1bd5807692001d49e9e4e67aa
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		printf("ERROR: This is a directory\n");
@@ -1139,6 +1168,9 @@ void writefile(char *name, int offset, int size, char *string)
 }
 
 //UTILITIES FUNCTION
+
+//Find File return a directory struct filled with the correct information
+//given the cluster number and name
 struct DIR find_file(unsigned int cluster, char *name)
 {
 	int i;
@@ -1194,11 +1226,13 @@ struct DIR find_file(unsigned int cluster, char *name)
 	}
 }
 
+//Used to find offset
 long sector_offset(long sec)
 {
 	return (bpb_32.BPB_BytsPerSec * sec);
 }
 
+//Used for FAT[cluster]
 unsigned int FAT_32(unsigned int cluster)
 {
 	unsigned int nextCluster;
@@ -1211,6 +1245,7 @@ unsigned int FAT_32(unsigned int cluster)
 	return nextCluster;
 }
 
+//Returning the correct cluster given the name
 long return_cluster_path(char *string){
 	int i = 1;
 	int j = 0;
@@ -1243,6 +1278,7 @@ long return_cluster_path(char *string){
 	return cluster;
 }
 
+//Returns cluster number based off of file name and cluster number
 unsigned int return_cluster_dir(unsigned int cluster, char *name){
 	int i = 0;
 	char fileName[12];
@@ -1287,11 +1323,13 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 	}
 }
 
+//First sector cluster formula
 long first_sector_cluster(unsigned int cluster)
 {
 	return ( (cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
 }
 
+//Empty Clusters
 long empty_cluster()
 {
 	//root starts at 2
@@ -1310,6 +1348,7 @@ long empty_cluster()
 	}	
 }
 
+//For Writing/Reading
 void change_val_cluster(unsigned int value, unsigned int cluster)
 {
 	long offset;
@@ -1360,6 +1399,7 @@ int equals(unsigned char name1[], unsigned char name2[])
 	return 1;
 }
 
+//Check if file is opened or not
 int opened(unsigned int cluster)
 {
 	int i;
@@ -1396,6 +1436,7 @@ void close_file(unsigned int cluster)
 	open_files_arraysize -= 1;
 }
 
+//return the correct offset given cluster and file name
 long return_offset(unsigned int cluster, char *name)
 {	
 	int i;
@@ -1449,6 +1490,7 @@ long return_offset(unsigned int cluster, char *name)
 	}
 }
 
+//Getting complete empty cluster and returning the offset
 long find_empty_cluster(unsigned int cluster){
 	unsigned int nextCluster;
 	long offset;

@@ -2,20 +2,27 @@ Project 3: FAT32 File System
 
 Members:
   -Anthony Tieu
+  	-Documentation/Coding
   -Vita Tran
+  	-Documentation/Coding
   -Mustafa Syed
+  	-Documentation/Coding
   
 Tar File:
   -Named: p3-Tieu-Tran-Syed.tar
   -Files:
   	-README.md
+		-File describing group member contributions and necessary information
+			about the project.
 	-proj3.c
+		-Main file for project code. (In language C)
 	-makefile
+		-Used to help compile and clean when testing.
 
 Makefile Instructions:
-	a.out:
+	make a.out:
 		compiles our c file using "gcc proj3.c".
-	clean:
+	make clean:
 		removes our executable using "rm a.out".
 
 Known Bugs:
@@ -51,7 +58,8 @@ Known Bugs:
 Unfinished Portions:
 	READ:
 		-We did not get enough time to start on read, but was also confused on how to test
-			with OFFSET and SIZE. 
+			with OFFSET and SIZE. Had temporary code but is commented out due to it 
+			being incomplete.
 	WRITE:
 		-We did not get enough time to start on read, but was also confused on how to test
 			with OFFSET and SIZE. 

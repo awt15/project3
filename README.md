@@ -22,6 +22,8 @@ Known Bugs:
 	Whole Project:
 		-Not sure if error checking if fully working but most of the functions
 			should be checking for correct amount of arguments.
+		-The functions work with both lowercase and uppercase names for 
+			FILENAME/DIRNAME
 	CD:
 		-"cd .." only works whenever the parent directory is the root.
 			If the parent directory is not the root then "cd .." changes our

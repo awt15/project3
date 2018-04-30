@@ -1104,13 +1104,7 @@ void close(char *name)
 		++i;
 	}
 	fileName[i] = '\0';
-	DIR_entry = find_file(current_cluster_number, fileName);
-<<<<<<< HEAD
-
-=======
-	
-	//Making sure file is not adirectory
->>>>>>> acf4d1419b1f82d1bd5807692001d49e9e4e67aa
+	DIR_entry = find_file(current_cluster_number, fileName); //Making sure file is not a directory
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		printf("ERROR: This is a directory\n");

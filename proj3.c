@@ -249,18 +249,24 @@ int main(int argc, char* argv[])
 				}
 				else if (strcmp(operation, "open") == 0)
 				{
-					scanf("%s %s", name, mode);
-					getchar();
-					if(strcmp(mode, "r") == 0)
-						open(name, READ_ONLY);
-					else if(strcmp(mode, "w") == 0)
-						open(name, WRITE_ONLY);
-					else if(strcmp(mode, "rw") == 0)
-						open(name, READ_WRITE);
-					else if(strcmp(mode, "wr") == 0)
-						open(name, WRITE_READ);
+					fgets(name, sizeof(name), stdin);
+					if(sscanf(name, "%s %s", name, mode) == 2)
+					{
+						if(strcmp(mode, "r") == 0)
+							open(name, READ_ONLY);
+						else if(strcmp(mode, "w") == 0)
+							open(name, WRITE_ONLY);
+						else if(strcmp(mode, "rw") == 0)
+							open(name, READ_WRITE);
+						else if(strcmp(mode, "wr") == 0)
+							open(name, WRITE_READ);
+						else
+							printf("ERROR: Invalid mode.\n");
+					}
 					else
-						printf("ERROR: Invalid mode\n");
+					{
+						printf("ERROR: Invalid arguments.\n");
+					}					
 				}
 				else if (strcmp(operation, "close") == 0)
 				{
@@ -1075,6 +1081,7 @@ void close(char *name)
 	}
 	fileName[i] = '\0';
 	DIR_entry = find_file(current_cluster_number, fileName);
+
 	if(DIR_entry.DIR_Attr == 0x10)
 	{
 		printf("ERROR: This is a directory\n");
@@ -1093,7 +1100,7 @@ void close(char *name)
 	}
 	else
 	{
-		printf("ERROR: Not a File\n");
+		printf("ERROR: Not a file\n");
 	}
 
 }
@@ -1104,7 +1111,6 @@ void readfile(char *name, int offset, int size)
 	struct DIR dir;
 	int file_size = sizeof(name);
 	dir = find_file(current_cluster_number, name);
-
 	if(opened(offset))
 	{
 		printf("ERROR: File is not opened.\n");
@@ -1123,7 +1129,6 @@ void readfile(char *name, int offset, int size)
 	}
 	else
 	{
-
 	}
 */
 }

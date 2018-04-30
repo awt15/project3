@@ -940,10 +940,10 @@ int rm (char *name)
 
 	fileName[i] = '\0';
 
-	while(i < 32)
+	while(j < 32)
 	{
-		empty[i] = '\0';
-		i++;
+		empty[j] = '\0';
+		j++;
 	}
 
 	//Getting correct offset of file
@@ -971,6 +971,10 @@ int rm (char *name)
 			fwrite(&empty, OFFSET_CONST, 1, file);
 			return CLUSTER_END;	
 		}
+	}
+	else
+	{
+		printf("Error: Not a file\n");
 	}
 }
 
@@ -1026,12 +1030,12 @@ int rmdir (char *name)
 	}
 	else if(DIR_entry.DIR_Attr == 0x20)
 	{
-		printf("ERROR: This is a File\n");
+		printf("ERROR: This is a file\n");
 		return CLUSTER_END;
 	}
 	else
 	{
-		printf("ERROR: Not a Directory\n");
+		printf("ERROR: Not a directory\n");
 		return CLUSTER_END;
 	}
 }
@@ -1512,11 +1516,11 @@ long return_offset(unsigned int cluster, char *name)
 			{
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
 			}
-			else if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			/*else if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
 			{
 				printf("ERROR: No file found.\n");
-				return -1;
-			}
+				//return -1;
+			}*/
 
 			if(DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
 			{

@@ -125,7 +125,6 @@ void writefile(char *name, int offset, int size, char *string);
 struct DIR find_file(unsigned int cluster, char *name);
 void change_val_cluster(unsigned int value, unsigned int cluster);
 void empty_val_cluster(unsigned int cluster);
-int equals(unsigned char name1[], unsigned char name2[]);
 int opened(unsigned int cluster);
 void close_file(unsigned int cluster);
 unsigned int FAT_32(unsigned int cluster);
@@ -1232,7 +1231,7 @@ unsigned int FAT_32(unsigned int cluster)
 	unsigned int nextCluster;
 	long offset;
 
-	offset = bpb_32.BPB_RsvdSecCnt*bpb_32.BPB_BytsPerSec + cluster*4;
+	offset = bpb_32.BPB_RsvdSecCnt * bpb_32.BPB_BytsPerSec + cluster * 4;
 	fseek(file, offset, SEEK_SET);
 	fread(&nextCluster, sizeof(unsigned int), 1, file);
 
@@ -1240,19 +1239,24 @@ unsigned int FAT_32(unsigned int cluster)
 }
 
 //Returning the correct cluster given the name
-long return_cluster_path(char *string){
+long return_cluster_path(char *string)
+{
 	int i = 1;
 	int j = 0;
 	long cluster;
 	unsigned char name[11];
 	cluster = bpb_32.BPB_RootClus;
-	for(;;){
-		for (i; ; i++){
-			if (string[i] != '\0'){
+	for(;;)
+	{
+		for (i; ; i++)
+		{
+			if (string[i] != '\0')
+			{
 				name[j] = string[i];
 				j++;
 			}
-			else{
+			else
+			{
 				name[j] = '\0';
 				j = 0;
 				break;
@@ -1267,13 +1271,16 @@ long return_cluster_path(char *string){
 			//printf("cluster loop: %d\n", cluster);
 		}
 		else
+		{
 			break;
+		}
 	}
 	return cluster;
 }
 
 //Returns cluster number based off of file name and cluster number
-unsigned int return_cluster_dir(unsigned int cluster, char *name){
+unsigned int return_cluster_dir(unsigned int cluster, char *name)
+{
 	int i = 0;
 	char fileName[12];
 	long offset;
@@ -1289,11 +1296,17 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 			offset+=OFFSET_CONST;
 			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
+			{
 				continue;
+			}
 			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			{
 				break;
+			}
 			else if (DIR_entry.DIR_Name[0] == 0x05)
+			{
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
+			}
 
 			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG){
 				for (i = 0; i < 11; i++)
@@ -1320,7 +1333,7 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name){
 //First sector cluster formula
 long first_sector_cluster(unsigned int cluster)
 {
-	return ( (cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
+	return ((cluster - 2) * bpb_32.BPB_SecPerClus + bpb_32.BPB_RsvdSecCnt + bpb_32.BPB_FATSz32 * 2);
 }
 
 //Empty Clusters
@@ -1380,31 +1393,22 @@ void empty_val_cluster(unsigned int cluster)
 	fwrite(&value, sizeof(unsigned int), 1, file);
 }
 
-int equals(unsigned char name1[], unsigned char name2[])
-{
-	int i;
-	for(i = 0; i < 11; i++)
-	{
-		if(name1[i] != name2[i])
-		{
-			return 0;
-		}
-	}
-	return 1;
-}
-
 //Check if file is opened or not
 int opened(unsigned int cluster)
 {
 	int i;
 	if (open_files_arraysize == 0)
+	{	
 		return 0;
+	}
 	else
 	{
 		for(i = 0; i < open_files_arraysize; i++)
 		{
 			if(open_files_array[i].file_first_cluster_number == cluster)
+			{
 				return 1;
+			}
 		}
 	}
 	return 0;
@@ -1499,10 +1503,12 @@ long find_empty_cluster(unsigned int cluster){
 		fseek(file, offset, SEEK_SET);
 
 		// temp variable to compare with offset
-		while ( temp > offset )
+		while (temp > offset)
 		{
 			if(offset > temp)
+			{
 				break;
+			}
 
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 
@@ -1513,13 +1519,14 @@ long find_empty_cluster(unsigned int cluster){
 				continue;
 			}
 			else
+			{
 				return offset;
+			}
 
 		}
 
 		if (END_OF_CLUSTER <= FAT_32(cluster))
-		{
-			
+		{	
 			if (BPB_FSI_info.FSI_Nxt_Free != CLUSTER_END)
 			{	
 				nextCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
@@ -1545,6 +1552,8 @@ long find_empty_cluster(unsigned int cluster){
 			cluster = nextCluster;
 		}
 		else
+		{
 			cluster = FAT_32(cluster);
+		}
 	}	
 }

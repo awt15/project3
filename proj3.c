@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
 					}
 
 					fgets(name, sizeof(name), stdin);
+					
 					if(sscanf(name,"%s\n", name) != 1)
 					{
 						ls(current_cluster_number);
@@ -206,80 +207,101 @@ int main(int argc, char* argv[])
 						ls_name(name);
 					}
 				}
-				else if (strcmp(operation, "cd") == 0)
+				else if(strcmp(operation, "cd") == 0)
 				{
 					scanf("%s", name);
+					
 					if(strcmp(name,"..") != 0)
+					{
 						parentCluster = current_cluster_number;
+					}
 					getchar();
 					cd(name);
 				}
-				else if (strcmp(operation, "size") == 0)
+				else if(strcmp(operation, "size") == 0)
 				{
 					scanf("%s", name);
 					getchar();
 					int s = size(name);
 					if(s == -1)
+					{
 						continue;
+					}
 					else
+					{
 						printf("%d\n", size(name));
+					}
 				}
-				else if (strcmp(operation, "creat") == 0)
+				else if(strcmp(operation, "creat") == 0)
 				{
 					scanf("%s", name);
 					getchar();
 					create(name);
 				}
-				else if (strcmp(operation, "mkdir") == 0){
+				else if(strcmp(operation, "mkdir") == 0)
+				{
 					scanf("%s", name);
 					getchar();
 					mkdir(name);
 				}
-				else if (strcmp(operation, "rm") == 0){
+				else if(strcmp(operation, "rm") == 0)
+				{
 					scanf("%s", name);
 					getchar();
 					rm(name);
 				}
-				else if (strcmp(operation, "rmdir") == 0){
+				else if(strcmp(operation, "rmdir") == 0)
+				{
 					scanf("%s", name);
 					getchar();
 					rmdir(name);
 				}
-				else if (strcmp(operation, "open") == 0)
+				else if(strcmp(operation, "open") == 0)
 				{
 					fgets(name, sizeof(name), stdin);
+					
 					if(sscanf(name, "%s %s", name, mode) == 2)
 					{
 						if(strcmp(mode, "r") == 0)
+						{
 							open(name, READ_ONLY);
+						}
 						else if(strcmp(mode, "w") == 0)
+						{
 							open(name, WRITE_ONLY);
+						}
 						else if(strcmp(mode, "rw") == 0)
+						{
 							open(name, READ_WRITE);
+						}
 						else if(strcmp(mode, "wr") == 0)
+						{
 							open(name, WRITE_READ);
+						}
 						else
+						{
 							printf("ERROR: Invalid mode.\n");
+						}
 					}
 					else
 					{
 						printf("ERROR: Invalid arguments.\n");
 					}					
 				}
-				else if (strcmp(operation, "close") == 0)
+				else if(strcmp(operation, "close") == 0)
 				{
 					scanf("%s", name);
 					getchar();
 					close(name);
 				}
-				else if (strcmp(operation, "read")==0)
+				else if(strcmp(operation, "read")==0)
 				{
 					int offset, size;
 					scanf("%s %d %d", name, &offset, &size);
 					getchar();
 					readfile(name, offset, size);
 				}
-				else if (strcmp(operation, "write")==0)
+				else if(strcmp(operation, "write")==0)
 				{
 					int offset, size;
 					char string[13];
@@ -288,16 +310,20 @@ int main(int argc, char* argv[])
 					writefile(name, offset, size, string);
 				}
 				else
+				{
 					printf("Incorrect arguments. Enter exit, info, ls, cd, size, create, mkdir, rm, rmdir, open, close, read, write.\n");			
+				}
 			}
 			return 0;
 		}
-		else{
+		else
+		{
 			printf("Could not find FAT_32 image.\n");
 			return -1;
 		}
 	}
-	else{
+	else
+	{
 		printf("Incorrect number of arguments.\n");
 		return -1;
 	}
@@ -333,19 +359,21 @@ int ls(int current_cluster_number)
 	const int MAX = 15;
 	char dir_content[MAX];
 
-	while (1){
+	while(1)
+	{
 		offset = first_sector_cluster(current_cluster_number) * bpb_32.BPB_BytsPerSec;
 		offset_total = offset + bpb_32.BPB_BytsPerSec;
 		fseek(file, offset, SEEK_SET);
-		while (offset < offset_total)
+		while(offset < offset_total)
 		{
 			fread(&directory, sizeof(struct DIR), 1, file);
 			offset += OFFSET_CONST;
+			
 			if(directory.DIR_Attr == 0x10 || directory.DIR_Attr == 0x20)
 			{
-				while (counter < MAX)
+				while(counter < MAX)
 				{
-					if (directory.DIR_Name[counter] == ' ')
+					if(directory.DIR_Name[counter] == ' ')
 					{
 						dir_content[counter] = '\0';
 						dir_content[MAX - 1] = '\0';
@@ -377,7 +405,9 @@ int ls(int current_cluster_number)
 int ls_name(char *name)
 {
 	if(cd(name) == -1)
+	{
 		return 0;
+	}
 	ls(current_cluster_number);
 	cd("..");
 	return 0;
@@ -391,7 +421,7 @@ int cd(char *name)
 	struct DIR DIR_entry;
 	
 	//Getting Directory Name
-	while (name[i] != '\0')
+	while(name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
 		{
@@ -401,7 +431,7 @@ int cd(char *name)
 		++i;
 	}
 
-	while (i < 11)
+	while(i < 11)
 	{
 		fileName[i] = ' ';
 		++i;
@@ -410,35 +440,36 @@ int cd(char *name)
 	fileName[i] = '\0';
 	
 	//Directory Name Possibilities
-	if (strcmp(name, ".") == 0)
+	if(strcmp(name, ".") == 0)
 	{
 		//root?		
 	}
-	else if (strcmp(name, "/") == 0)
+	else if(strcmp(name, "/") == 0)
 	{
 		workingDir[0] = '/';
 		workingDir[1] = '\0';
 		current_cluster_number = bpb_32.BPB_RootClus;
 	}
-	else if (strcmp(name, "..") == 0)
+	else if(strcmp(name, "..") == 0)
 	{
-		if (strcmp(workingDir, "/") == 0)
+		if(strcmp(workingDir, "/") == 0)
 		{
 			printf("ERROR: It's in the root directory.\n");
 			return -1;
 		}
 		else
 		{	
-			while (workingDir[i] != '\0')
+			while(workingDir[i] != '\0')
 			{
 				++i;
 			}
-			while ((i = i -1) && workingDir[i] != '/')
+
+			while((i = i -1) && workingDir[i] != '/')
 			{
 				--i;
 			}
 			
-			if (i == 0)
+			if(i == 0)
 			{
 				workingDir[i + 1] = '\0';
 			}
@@ -456,29 +487,29 @@ int cd(char *name)
 	else
 	{
 		DIR_entry = find_file(current_cluster_number, fileName);
-		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+		if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
 		{
 			printf("ERROR: No directory found!\n");
 			return -1;
 		}
 		else 
 		{
-			if (DIR_entry.DIR_Attr == 0x10)
+			if(DIR_entry.DIR_Attr == 0x10)
 			{
 				current_cluster_number = return_cluster_dir(current_cluster_number, fileName);
 				i = 0;
 				j = 0;
-				while (workingDir[i] != '\0')
+				while(workingDir[i] != '\0')
 				{
 					++i;
 				}
 
-				if (workingDir[i - 1] != '/')
+				if(workingDir[i - 1] != '/')
 				{
 					workingDir[i++] = '/';
 				}
 
-				while (name[j] != '\0')
+				while(name[j] != '\0')
 				{
 					workingDir[i] = name[j];
 					++i;
@@ -505,9 +536,9 @@ unsigned int size(char* file)
 	struct DIR DIR_entry;
 	
 	//Getting File Name
-	while (file[i] != '\0')
+	while(file[i] != '\0')
 	{
-		if (file[i] >= 'a' && file[i] <= 'z')
+		if(file[i] >= 'a' && file[i] <= 'z')
 		{
 			file[i] -= OFFSET_CONST;
 		}
@@ -515,7 +546,7 @@ unsigned int size(char* file)
 		++i;
 	}
 
-	while (i < 11)
+	while(i < 11)
 	{
 		fileName[i] = ' ';
 		++i;
@@ -524,14 +555,14 @@ unsigned int size(char* file)
 	fileName[i] = '\0';
 	
 	//File Name Possibilities
-	if (strcmp(file, ".") == 0)
+	if(strcmp(file, ".") == 0)
 	{
 		//root?		
 	}
 	else
 	{
 		DIR_entry = find_file(current_cluster_number, fileName);
-		if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+		if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
 		{
 			printf("ERROR: FILENAME was not found!\n");
 			return -1;
@@ -558,9 +589,9 @@ int create (char *name)
 
 	// loops set up the file name by accessing indices in name 
 	// prep file name before creating it
-	while (name[i] != '\0') 
+	while(name[i] != '\0') 
 	{
-		if (name[i] >= 'a' && name[i] <= 'z')
+		if(name[i] >= 'a' && name[i] <= 'z')
 		{
 			name[i] -= OFFSET_CONST;
 		}
@@ -569,9 +600,9 @@ int create (char *name)
 
 	// read in name portion of file into fileName
 	i = 0;
-	while (i < 8) 
+	while(i < 8) 
 	{
-		if (name[j] != '\0' && name[j] != '.')
+		if(name[j] != '\0' && name[j] != '.')
 		{
 			fileName[i] = name[i];
 			i++;
@@ -585,19 +616,19 @@ int create (char *name)
 	}
 
 	// fill up the rest of fileName with spaces
-	for (i = temp; i < 8; i++)
+	for(i = temp; i < 8; i++)
 	{
 		fileName[i] = ' ';
 	}
 
 	// accounting for extensions
-	if (name[temp++] == '.') 
+	if(name[temp++] == '.') 
 	{
 		i = 8;
 
-		while (i < 11)
+		while(i < 11)
 		{
-			if (name[temp] != '\0')
+			if(name[temp] != '\0')
 			{
 				fileName[i] = name[temp++];
 			}
@@ -607,7 +638,7 @@ int create (char *name)
 				break;
 			}
 
-			if (i == 10)
+			if(i == 10)
 			{
 				temp = i++;
 			}
@@ -615,7 +646,7 @@ int create (char *name)
 			i++;
 		}
 
-		while (temp < 11)
+		while(temp < 11)
 		{
 			fileName[temp] = ' ';
 			temp++;
@@ -624,7 +655,7 @@ int create (char *name)
 
 	else 
 	{
-		while (temp < 11)
+		while(temp < 11)
 		{
 			fileName[temp] = ' ';
 			temp++;
@@ -636,11 +667,11 @@ int create (char *name)
 	
 	// get the directory entry
 	DIR_entry = find_file(current_cluster_number, fileName);
-	if (DIR_entry.DIR_Name[0] == 0)
+	if(DIR_entry.DIR_Name[0] == 0)
 	{
 		offset = find_empty_cluster(current_cluster_number);
 		i = 0;
-		while (i < 11)
+		while(i < 11)
 		{
 			emptyEntry.DIR_Name[i] = fileName[i];
 			++i;
@@ -706,9 +737,9 @@ int mkdir (char *name)
 
 	// loops set up the file name by accessing indices in name 
 	// prep file name before creating it
-	while (name[i] != '\0') 
+	while(name[i] != '\0') 
 	{
-		if (name[i] >= 'a' && name[i] <= 'z')
+		if(name[i] >= 'a' && name[i] <= 'z')
 		{
 			name[i] -= OFFSET_CONST;
 		}
@@ -717,9 +748,9 @@ int mkdir (char *name)
 
 	// read in name portion of file into fileName
 	i = 0;
-	while (i < 8) 
+	while(i < 8) 
 	{
-		if (name[j] != '\0' && name[j] != '.')
+		if(name[j] != '\0' && name[j] != '.')
 		{
 			fileName[i] = name[i];
 			i++;
@@ -733,19 +764,19 @@ int mkdir (char *name)
 	}
 
 	// fill up the rest of fileName with spaces
-	for (i = temp; i < 8; i++)
+	for(i = temp; i < 8; i++)
 	{
 		fileName[i] = ' ';
 	}
 
 	// accounting for extensions
-	if (name[temp++] == '.') 
+	if(name[temp++] == '.') 
 	{
 		i = 8;
 
 		while (i < 11)
 		{
-			if (name[temp] != '\0')
+			if(name[temp] != '\0')
 			{
 				fileName[i] = name[temp++];
 			}
@@ -755,7 +786,7 @@ int mkdir (char *name)
 				break;
 			}
 
-			if (i == 10)
+			if(i == 10)
 			{
 				temp = i++;
 			}
@@ -763,7 +794,7 @@ int mkdir (char *name)
 			i++;
 		}
 
-		while (temp < 11)
+		while(temp < 11)
 		{
 			fileName[temp] = ' ';
 			temp++;
@@ -772,7 +803,7 @@ int mkdir (char *name)
 
 	else 
 	{
-		while (temp < 11)
+		while(temp < 11)
 		{
 			fileName[temp] = ' ';
 			temp++;
@@ -784,11 +815,11 @@ int mkdir (char *name)
 	
 	// get the directory entry
 	DIR_entry = find_file(current_cluster_number, fileName);
-	if (DIR_entry.DIR_Name[0] == 0)
+	if(DIR_entry.DIR_Name[0] == 0)
 	{
 		offset = find_empty_cluster(current_cluster_number);
 		i = 0;
-		while (i < 11)
+		while(i < 11)
 		{
 			emptyEntry.DIR_Name[i] = fileName[i];
 			++i;
@@ -822,6 +853,7 @@ int mkdir (char *name)
 				fflush(file);
 				break;
 			}
+			
 			if(newCluster == 0xFFFFFFFF)
 			{
 				newCluster = 1;
@@ -890,9 +922,9 @@ int rm (char *name)
 	unsigned int cluster;
 
 	//Getting File Name
-	while (name[i] != '\0')
+	while(name[i] != '\0')
 	{
-		if (name[i] >= 'a' && name[i] <= 'z')
+		if(name[i] >= 'a' && name[i] <= 'z')
 		{
 			name[i] -= OFFSET_CONST;
 		}
@@ -900,7 +932,7 @@ int rm (char *name)
 		++i;
 	}
 
-	while (i < 11)
+	while(i < 11)
 	{
 		fileName[i] = ' ';
 		++i;
@@ -955,9 +987,9 @@ int rmdir (char *name)
 	struct DIR DIR_entry;
 
 	//Getting Directory Name
-	while (name[i] != '\0')
+	while(name[i] != '\0')
 	{
-		if (name[i] >= 'a' && name[i] <= 'z')
+		if(name[i] >= 'a' && name[i] <= 'z')
 		{
 			name[i] -= OFFSET_CONST;
 		}
@@ -965,7 +997,7 @@ int rmdir (char *name)
 		++i;
 	}
 
-	while (i < 11)
+	while(i < 11)
 	{
 		fileName[i] = ' ';
 		++i;
@@ -1013,7 +1045,7 @@ void open(char *name, unsigned short mode)
 	unsigned int cluster;
 	
 	//Getting File Name
-	while (name[i] != '\0')
+	while(name[i] != '\0')
 	{
 		if (name[i] >= 'a' && name[i] <= 'z')
 		{
@@ -1023,7 +1055,7 @@ void open(char *name, unsigned short mode)
 		++i;
 	}
 
-	while (i < 11)
+	while(i < 11)
 	{
 		fileName[i] = ' ';
 		++i;
@@ -1039,7 +1071,7 @@ void open(char *name, unsigned short mode)
 	}
 	else if((DIR_entry.DIR_Attr == 0x20)||(DIR_entry.DIR_Attr == 0x01))
 	{
-		if (DIR_entry.DIR_Attr == 0x01){
+		if(DIR_entry.DIR_Attr == 0x01){
 			filemode = READ_ONLY;
 		}
 		else
@@ -1087,9 +1119,9 @@ void close(char *name)
 	unsigned int cluster;
 	
 	//Getting file name
-	while (name[i] != '\0')
+	while(name[i] != '\0')
 	{
-		if (name[i] >= 'a' && name[i] <= 'z')
+		if(name[i] >= 'a' && name[i] <= 'z')
 		{
 			name[i] -= OFFSET_CONST;
 		}
@@ -1097,7 +1129,7 @@ void close(char *name)
 		++i;
 	}
 
-	while (i < 11)
+	while(i < 11)
 	{
 		fileName[i] = ' ';
 		++i;
@@ -1129,7 +1161,7 @@ void close(char *name)
 
 void readfile(char *name, int offset, int size)
 {
-/*
+	/*
 	struct DIR dir;
 	int file_size = sizeof(name);
 	dir = find_file(current_cluster_number, name);
@@ -1152,12 +1184,35 @@ void readfile(char *name, int offset, int size)
 	else
 	{
 	}
-*/
+	*/
 }
 
 void writefile(char *name, int offset, int size, char *string)
 {
-
+	/*
+	struct DIR dir;
+	int file_size = sizeof(name);
+	dir = find_file(current_cluster_number, name);
+	if(opened(offset))
+	{
+		printf("ERROR: File is not opened.\n");
+	}
+	else if(strcmp(dir.DIR_Name, name) != 0)
+	{
+		printf("ERROR: File cannot be found.\n");
+	}
+	else if(dir.DIR_Attr == 0x10)
+	{
+		printf("ERROR: File is a directory.\n");
+	}
+	else if(offset > file_size)
+	{
+		printf("ERROR: OFFSET is larger than the size of the file.\n");
+	}
+	else
+	{
+	}
+	*/
 }
 
 //UTILITIES FUNCTION
@@ -1177,33 +1232,33 @@ struct DIR find_file(unsigned int cluster, char *name)
 		offset = (first_sector_cluster(cluster)) * bpb_32.BPB_BytsPerSec;
 		fseek(file, offset, SEEK_SET);
 		long temp = offset + bpb_32.BPB_BytsPerSec;
-		while (temp > offset)
+		while(temp > offset)
 		{
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 
-			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
+			if(DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
 			{
 				continue;
 			}
-			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			else if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
 			{
 				return DIR_entry;
 			}
-			else if (DIR_entry.DIR_Name[0] == 0x05)
+			else if(DIR_entry.DIR_Name[0] == 0x05)
 			{
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
 			}
 
-			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
+			if(DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
 			{
 
-				for (i=0; i<11; i++)
+				for(i=0; i<11; i++)
 				{
 					fileName[i]=DIR_entry.DIR_Name[i];
 				}
 
 				fileName[11]= '\0';
-				if (strcmp(fileName, name) == 0)
+				if(strcmp(fileName, name) == 0)
 				{
 					return DIR_entry;
 				}
@@ -1212,7 +1267,7 @@ struct DIR find_file(unsigned int cluster, char *name)
 		}
 		cluster = FAT_32(cluster);
 
-		if (cluster >= 0x0FFFFFF8)
+		if(cluster >= 0x0FFFFFF8)
 		{
 			break;
 		}
@@ -1248,9 +1303,9 @@ long return_cluster_path(char *string)
 	cluster = bpb_32.BPB_RootClus;
 	for(;;)
 	{
-		for (i; ; i++)
+		for(i; ; i++)
 		{
-			if (string[i] != '\0')
+			if(string[i] != '\0')
 			{
 				name[j] = string[i];
 				j++;
@@ -1263,7 +1318,7 @@ long return_cluster_path(char *string)
 			}		
 		}
 
-		if (strcmp(name, "") != 0)
+		if(strcmp(name, "") != 0)
 		{
 			//printf("testing name loop: %s\n", name);
 			//printf("cluster loop: %d\n", cluster);
@@ -1291,24 +1346,25 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name)
 		fseek(file, offset, SEEK_SET);
 
 		long temp = sector_offset(first_sector_cluster(current_cluster_number) + bpb_32.BPB_SecPerClus);
-		while ( offset < temp )
+		while(offset < temp)
 		{
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 			offset+=OFFSET_CONST;
-			if (DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
+			if(DIR_entry.DIR_Name[0] == ENTRY_EMPTY)
 			{
 				continue;
 			}
-			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			else if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
 			{
 				break;
 			}
-			else if (DIR_entry.DIR_Name[0] == 0x05)
+			else if(DIR_entry.DIR_Name[0] == 0x05)
 			{
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
 			}
 
-			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG){
+			if(DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
+			{
 				for (i = 0; i < 11; i++)
 				{
 					fileName[i] = DIR_entry.DIR_Name[i];
@@ -1317,7 +1373,7 @@ unsigned int return_cluster_dir(unsigned int cluster, char *name)
 				fileName[11] = '\0';
 			}
 
-			if ((strcmp(fileName, name) == 0) && DIR_entry.DIR_Attr == 0x10)
+			if((strcmp(fileName, name) == 0) && DIR_entry.DIR_Attr == 0x10)
 			{		
 				return (DIR_entry.DIR_FstClusHI *0x100 + DIR_entry.DIR_FstClusLO);
 			}
@@ -1374,14 +1430,14 @@ void empty_val_cluster(unsigned int cluster)
 
 	empty = (unsigned char *)malloc(sizeof(unsigned char) * bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus);
 
-	for (i; i < bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus; i++)
+	for(i; i < bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus; i++)
 	{
 		empty[i] = 0;
 	}
 
 	offset = bpb_32.BPB_RsvdSecCnt * bpb_32.BPB_BytsPerSec + cluster * 4;
 
-	if (FAT_32(cluster) <= 0x0FFFFFEF
+	if(FAT_32(cluster) <= 0x0FFFFFEF
 		&& FAT_32(cluster) >= 0x00000002)
 	{
 		empty_val_cluster(FAT_32(cluster));	
@@ -1397,7 +1453,7 @@ void empty_val_cluster(unsigned int cluster)
 int opened(unsigned int cluster)
 {
 	int i;
-	if (open_files_arraysize == 0)
+	if(open_files_arraysize == 0)
 	{	
 		return 0;
 	}
@@ -1448,21 +1504,21 @@ long return_offset(unsigned int cluster, char *name)
 		fseek(file, offset, SEEK_SET);
 
 		long temp = sector_offset(first_sector_cluster(cluster)) + bpb_32.BPB_BytsPerSec * bpb_32.BPB_SecPerClus;
-		while (temp >= offset)
+		while(temp >= offset)
 		{
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 
-			if (DIR_entry.DIR_Name[0] == 0x05)
+			if(DIR_entry.DIR_Name[0] == 0x05)
 			{
 				DIR_entry.DIR_Name[0] = ENTRY_EMPTY;
 			}
-			else if (DIR_entry.DIR_Name[0] == ENTRY_LAST)
+			else if(DIR_entry.DIR_Name[0] == ENTRY_LAST)
 			{
 				printf("ERROR: No file found.\n");
 				return -1;
 			}
 
-			if (DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
+			if(DIR_entry.DIR_Attr != ATTRIBUTE_NAME_LONG)
 			{
 				for (i = 0; i < 11; i++)
 				{
@@ -1471,7 +1527,7 @@ long return_offset(unsigned int cluster, char *name)
 
 				fileName[11] = '\0';
 
-				if (strcmp(fileName, name) == 0)
+				if(strcmp(fileName, name) == 0)
 				{
 					return offset;
 				}
@@ -1481,7 +1537,7 @@ long return_offset(unsigned int cluster, char *name)
 		}
 		cluster = FAT_32(cluster);
 
-		if (END_OF_CLUSTER < cluster)
+		if(END_OF_CLUSTER < cluster)
 		{
 			break;
 		}
@@ -1503,7 +1559,7 @@ long find_empty_cluster(unsigned int cluster){
 		fseek(file, offset, SEEK_SET);
 
 		// temp variable to compare with offset
-		while (temp > offset)
+		while(temp > offset)
 		{
 			if(offset > temp)
 			{
@@ -1512,7 +1568,7 @@ long find_empty_cluster(unsigned int cluster){
 
 			fread(&DIR_entry, sizeof(struct DIR), 1, file);
 
-			if ((DIR_entry.DIR_Name[0] != ENTRY_EMPTY) && (DIR_entry.DIR_Name[0] != ENTRY_LAST))
+			if((DIR_entry.DIR_Name[0] != ENTRY_EMPTY) && (DIR_entry.DIR_Name[0] != ENTRY_LAST))
 			{
 				offset += OFFSET_CONST;
 				fseek(file,offset,SEEK_SET);
@@ -1525,9 +1581,9 @@ long find_empty_cluster(unsigned int cluster){
 
 		}
 
-		if (END_OF_CLUSTER <= FAT_32(cluster))
+		if(END_OF_CLUSTER <= FAT_32(cluster))
 		{	
-			if (BPB_FSI_info.FSI_Nxt_Free != CLUSTER_END)
+			if(BPB_FSI_info.FSI_Nxt_Free != CLUSTER_END)
 			{	
 				nextCluster = BPB_FSI_info.FSI_Nxt_Free + 1;
 			}	
@@ -1536,9 +1592,9 @@ long find_empty_cluster(unsigned int cluster){
 				nextCluster = 0x00000002;
 			}
 
-			for ( ; ; nextCluster++)
+			for( ; ; nextCluster++)
 			{
-				if (FAT_32(nextCluster) == 0x00000000)
+				if(FAT_32(nextCluster) == 0x00000000)
 				{
 					change_val_cluster(nextCluster, cluster);
 					change_val_cluster(END_OF_CLUSTER, nextCluster);
@@ -1546,8 +1602,10 @@ long find_empty_cluster(unsigned int cluster){
 					fflush(file);
 					break;
 				}
-				if (nextCluster == CLUSTER_END)
+				if(nextCluster == CLUSTER_END)
+				{	
 					nextCluster = 0x00000001;
+				}
 			}
 			cluster = nextCluster;
 		}
